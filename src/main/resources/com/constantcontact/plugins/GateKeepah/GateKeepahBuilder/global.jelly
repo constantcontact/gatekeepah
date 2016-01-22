@@ -11,10 +11,10 @@
     </f:entry>
     
     <f:entry title="Sonar Password" field="sonarPassword">
-      <f:textbox />
+      <f:password />
     </f:entry>
     
-    <f:entry title="Default Quality Gate Name" field="DefaultQualityGateName">
+    <f:entry title="Default Quality Gate Name" field="defaultQualityGateName">
       <f:textbox />
     </f:entry>
   </f:section>
