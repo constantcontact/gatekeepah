@@ -70,7 +70,7 @@ public class GateKeepahBuilderTest {
 	@Test
 	public void testGateKeepahEmptyResourceKey() throws Exception {
 		runTest(buildGateKeepahProperties("autobots", "", "50", "80", "gatekeepah"),
-				constructEmptyPropValue("sonar.team.resource.key="));
+				constructEmptyPropValue("sonar.resource.key="));
 	}
 
 	@Test
@@ -99,7 +99,7 @@ public class GateKeepahBuilderTest {
 	@Test
 	public void testGateKeepahNullResourceKey() throws Exception {
 		runTest(buildGateKeepahProperties("autobots", null, "50", "80", "gatekeepah"),
-				"sonar.team.resource.key is empty or null");
+				"sonar.resource.key is empty or null");
 	}
 
 	@Test
