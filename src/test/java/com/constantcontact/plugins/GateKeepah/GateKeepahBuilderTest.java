@@ -172,16 +172,16 @@ public class GateKeepahBuilderTest {
 		if (null != resourceKey) {
 			ps.append("sonar.resource.key=").append(resourceKey).append("\n");
 		}
-		if (null != resourceKey) {
+		if (null != breakLevel) {
 			ps.append("sonar.codecoverage.breaklevel=").append(breakLevel).append("\n");
 		}
-		if (null != resourceKey) {
+		if (null != goal) {
 			ps.append("sonar.codecoverage.goal=").append(goal).append("\n");
 		}
-		if (null != resourceKey) {
+		if (null != appName) {
 			ps.append("sonar.app.name=").append(appName).append("\n");
 		}
-		System.out.println(ps.toString());
+		System.out.println("GATE KEEPER BUILDER : " + ps.toString());
 		return new GateKeepahBuilder(null, ps.toString());
 	}
 
