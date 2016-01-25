@@ -84,6 +84,13 @@ public class QualityGateClient extends Sonar {
 		QualityGate qualityGate = mapper.readValue(responseBody, QualityGate.class);
 		return qualityGate;
 	}
+	
+	public void destroyQualityGate(final int id) throws Exception {
+		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+		formparams.add(new BasicNameValuePair("id", String.valueOf(id)));
+		HttpEntity payload = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
+		getHttpHelper().doPost(this.getHost() + "/api/qualitygates/destroy", payload);
+	}
 
 	private HttpHelper getHttpHelper() {
 		return httpHelper;

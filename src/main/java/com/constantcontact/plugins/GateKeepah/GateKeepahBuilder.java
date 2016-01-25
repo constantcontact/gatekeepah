@@ -53,9 +53,13 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 	}
 
 	public Properties readPropertiesFile(final FilePath workspace, String propertiesFileName,
-			final String additionalProperties) {
+			final String additionalProperties, final TaskListener listener) throws InterruptedException {
 		Properties props;
+
 		try {
+			if (null == propertiesFileName) {
+				throw new Exception("No file name found, creating our own");
+			}
 			InputStream input = new FileInputStream(workspace.absolutize() + File.separator + propertiesFileName);
 			props = new Properties();
 			props.load(input);
@@ -76,11 +80,25 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 				}
 			}
 		} catch (Exception e) {
+
 			props = new Properties();
 			if (null != additionalProperties) {
 				for (String line : additionalProperties.split(System.getProperty("line.separator"))) {
+					if (line.length() < 1) {
+						listener.getLogger().println(
+								"A properties file must be in the right place or properties added to the text area");
+						throw new InterruptedException();
+					}
+					listener.getLogger().println("Creating Property for " + line);
 					String[] newProperty = line.split("=");
-					props.setProperty(newProperty[0], newProperty[1]);
+
+					try {
+						props.setProperty(newProperty[0], newProperty[1]);
+					} catch (ArrayIndexOutOfBoundsException oobe) {
+						listener.getLogger().println(
+								"Property could not be set for " + line + " because it was missing its value");
+						throw new InterruptedException();
+					}
 				}
 				try {
 					File file = new File(workspace.absolutize() + File.separator + "gatekeepah.properties");
@@ -95,6 +113,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 					e1.printStackTrace();
 				}
 			}
+
 		}
 		return props;
 	}
@@ -107,7 +126,8 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		return projects;
 	}
 
-	public QualityGate findQualityGate(final QualityGateClient qualityGateClient, final String gateName) throws Exception {
+	public QualityGate findQualityGate(final QualityGateClient qualityGateClient, final String gateName)
+			throws Exception {
 		QualityGateListCollection qualityGates = qualityGateClient.retrieveQualityGateList();
 		QualityGate qualityGateToUse = null;
 		for (QualityGate qualityGate : qualityGates.getQualitygates()) {
@@ -173,7 +193,27 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 	public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
 			throws InterruptedException {
 
-		Properties props = readPropertiesFile(workspace, propertiesFileName, additionalProperties);
+		boolean failFast = false;
+		if (null == getDescriptor().getSonarHost() || getDescriptor().getSonarHost().isEmpty()) {
+			failFast = true;
+			listener.getLogger().println("Sonar host was not set in global configuration");
+		}
+
+		if (null == getDescriptor().getSonarUserName() || getDescriptor().getSonarUserName().isEmpty()) {
+			failFast = true;
+			listener.getLogger().println("Sonar Username was not set in global configuration");
+		}
+
+		if (null == getDescriptor().getSonarPassword() || getDescriptor().getSonarPassword().isEmpty()) {
+			failFast = true;
+			listener.getLogger().println("Sonar Password was not set in global configuration");
+		}
+
+		if (failFast) {
+			throw new InterruptedException();
+		}
+
+		Properties props = readPropertiesFile(workspace, propertiesFileName, additionalProperties, listener);
 
 		// Ensure all required properties are set
 		final String sonarTeamName = props.getProperty("sonar.team.name");
@@ -212,7 +252,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 			if (throwException) {
 				listener.getLogger().println("Aborting the build, no properties were set to utilize quality gates");
-				throw new InterruptedException("Aborting the build, no properties were set to utilize quality gates");
+				throw new InterruptedException();
 			}
 		} else {
 			if (null == sonarResourceKey || sonarResourceKey.isEmpty()) {
@@ -223,46 +263,47 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			if (throwException) {
 				listener.getLogger().println(
 						"Aborting the build, sonar.resource.key must be set to associate default quality gate");
-				throw new InterruptedException("Aborting the build, no properties were set to utilize quality gates");
+				throw new InterruptedException();
 			}
 			List<Project> projects;
 			try {
 				projects = gatherProjectsForKey(sonarResourceKey);
 				if (projects.size() > 1) {
 					listener.getLogger().println("Please be mores specific when defining sonar.resource.key");
-					throw new InterruptedException("Please be mores specific when defining sonar.resource.key");
+					throw new InterruptedException();
 				}
 
 				if (projects.size() == 0) {
 					listener.getLogger().println("Did not find any projects for that resource key");
-					throw new InterruptedException("Did not find any projects for that resource key");
+					throw new InterruptedException();
 				}
 
 			} catch (Exception e) {
 				listener.getLogger().println("Encountered an issue finding a project to associate");
-				throw new InterruptedException("Encountered an issue finding a project to associate");
+				throw new InterruptedException();
 			}
 			try {
 				QualityGateClient qualityGateClient = new QualityGateClient(getDescriptor().getSonarHost(),
 						getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
 
 				listener.getLogger().println("Looking for matching quality gate to identify with project");
-				QualityGate qualityGateToUse = findQualityGate(qualityGateClient, getDescriptor().getDefaultQualityGateName());
+				QualityGate qualityGateToUse = findQualityGate(qualityGateClient,
+						getDescriptor().getDefaultQualityGateName());
 
 				if (null != qualityGateToUse) {
 					listener.getLogger().println("Retrieving Quality Gate Details");
 					QualityGate qualityGate = qualityGateClient.retrieveQualityGateDetails(qualityGateToUse.getId());
 					qualityGateClient.associateQualityGate(qualityGate.getId(),
-							Integer.parseInt(projects.get(0).getId()));				
-					
-				}else{
+							Integer.parseInt(projects.get(0).getId()));
+
+				} else {
 					listener.getLogger().println("Encountered an issue locating quality gate details");
-					throw new InterruptedException("Encountered an issue locating quality gate details");
+					throw new InterruptedException();
 				}
 
 			} catch (Exception e) {
 				listener.getLogger().println("Encountered an issue locating quality gate details");
-				throw new InterruptedException("Encountered an issue locating quality gate details");
+				throw new InterruptedException();
 			}
 			return;
 		}
@@ -272,12 +313,12 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			List<Project> projects = gatherProjectsForKey(sonarResourceKey);
 			if (projects.size() > 1) {
 				listener.getLogger().println("Please be mores specific when defining sonar.resource.key");
-				throw new InterruptedException("Please be mores specific when defining sonar.resource.key");
+				throw new InterruptedException();
 			}
 
 			if (projects.size() == 0) {
 				listener.getLogger().println("Did not find any projects for that resource key");
-				throw new InterruptedException("Did not find any projects for that resource key");
+				throw new InterruptedException();
 			}
 
 			QualityGateClient qualityGateClient = new QualityGateClient(getDescriptor().getSonarHost(),
