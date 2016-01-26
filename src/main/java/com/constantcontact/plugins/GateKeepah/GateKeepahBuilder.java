@@ -126,7 +126,8 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		return props;
 	}
 
-	public List<Project> retrieveProjectsForKey(final ProjectClient projectClient, final String sonarResourceKey) throws Exception {
+	public List<Project> retrieveProjectsForKey(final ProjectClient projectClient, final String sonarResourceKey)
+			throws Exception {
 		List<Project> projects = projectClient.retrieveIndexOfProjects(sonarResourceKey);
 
 		return projects;
@@ -198,191 +199,185 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 	@Override
 	public void perform(Run<?, ?> build, FilePath workspace, Launcher launcher, TaskListener listener)
 			throws InterruptedException {
-
-		boolean failFast = false;
-		if (null == getDescriptor().getSonarHost() || getDescriptor().getSonarHost().isEmpty()) {
-			failFast = true;
-			listener.getLogger().println("Sonar host was not set in global configuration");
-		}
-
-		if (null == getDescriptor().getSonarUserName() || getDescriptor().getSonarUserName().isEmpty()) {
-			failFast = true;
-			listener.getLogger().println("Sonar Username was not set in global configuration");
-		}
-
-		if (null == getDescriptor().getSonarPassword() || getDescriptor().getSonarPassword().isEmpty()) {
-			failFast = true;
-			listener.getLogger().println("Sonar Password was not set in global configuration");
-		}
-
-		if (failFast) {
-			throw new InterruptedException();
-		}
-
-		Properties props = null;
 		try {
-			props = readPropertiesFile(workspace.absolutize().toString(), propertiesFileName, additionalProperties);
+
+			boolean failFast = false;
+			if (null == getDescriptor().getSonarHost() || getDescriptor().getSonarHost().isEmpty()) {
+				failFast = true;
+				listener.getLogger().println("Sonar host was not set in global configuration");
+			}
+
+			if (null == getDescriptor().getSonarUserName() || getDescriptor().getSonarUserName().isEmpty()) {
+				failFast = true;
+				listener.getLogger().println("Sonar Username was not set in global configuration");
+			}
+
+			if (null == getDescriptor().getSonarPassword() || getDescriptor().getSonarPassword().isEmpty()) {
+				failFast = true;
+				listener.getLogger().println("Sonar Password was not set in global configuration");
+			}
+
+			if (failFast) {
+				throw new InterruptedException("Global Sonar Configuration was not set correctly");
+			}
+
+			Properties props = null;
+			try {
+				props = readPropertiesFile(workspace.absolutize().toString(), propertiesFileName, additionalProperties);
+			} catch (Exception e) {
+				throw new InterruptedException(e.getLocalizedMessage());
+			}
+
+			// Ensure all required properties are set
+			final String sonarTeamName = props.getProperty("sonar.team.name");
+			final String sonarAppName = props.getProperty("sonar.app.name");
+			final String codeCoverageGoal = props.getProperty("sonar.codecoverage.goal");
+			final String codeCoverageBreakLevel = props.getProperty("sonar.codecoverage.breaklevel");
+			final String sonarResourceKey = props.getProperty("sonar.resource.key");
+
+			boolean throwException = false;
+			if (null == getDescriptor().getDefaultQualityGateName()
+					|| getDescriptor().getDefaultQualityGateName().isEmpty()) {
+				if (null == sonarTeamName || sonarTeamName.isEmpty()) {
+					listener.getLogger().println("sonar.team.name is empty or null");
+					throwException = true;
+				}
+
+				if (null == sonarAppName || sonarAppName.isEmpty()) {
+					listener.getLogger().println("sonar.app.name is empty or null");
+					throwException = true;
+				}
+
+				if (null == codeCoverageGoal || codeCoverageGoal.isEmpty()) {
+					listener.getLogger().println("sonar.codecoverage.goal is empty or null");
+					throwException = true;
+				}
+
+				if (null == codeCoverageBreakLevel || codeCoverageBreakLevel.isEmpty()) {
+					listener.getLogger().println("sonar.codecoverage.breaklevel is empty or null");
+					throwException = true;
+				}
+
+				if (null == sonarResourceKey || sonarResourceKey.isEmpty()) {
+					listener.getLogger().println("sonar.resource.key is empty or null");
+					throwException = true;
+				}
+
+				if (throwException) {
+					throw new InterruptedException(
+							"Aborting the build, no properties were set to utilize quality gates");
+				}
+			} else {
+				if (null == sonarResourceKey || sonarResourceKey.isEmpty()) {
+					throw new InterruptedException(
+							"Aborting the build, sonar.resource.key must be set to associate default quality gate");
+				}
+				List<Project> projects;
+				try {
+					ProjectClient projectClient = new ProjectClient(getDescriptor().getSonarHost(),
+							getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
+					projects = retrieveProjectsForKey(projectClient, sonarResourceKey);
+					if (projects.size() > 1) {
+						throw new InterruptedException("Please be mores specific when defining sonar.resource.key");
+					}
+
+					if (projects.size() == 0) {
+						throw new InterruptedException("Did not find any projects for that resource key");
+					}
+
+				} catch (Exception e) {
+					throw new InterruptedException(e.getLocalizedMessage());
+				}
+				try {
+					QualityGateClient qualityGateClient = new QualityGateClient(getDescriptor().getSonarHost(),
+							getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
+
+					listener.getLogger().println("Looking for matching quality gate to identify with project");
+					QualityGate qualityGateToUse = findQualityGate(qualityGateClient,
+							getDescriptor().getDefaultQualityGateName());
+
+					if (null != qualityGateToUse) {
+						listener.getLogger().println("Retrieving Quality Gate Details");
+						QualityGate qualityGate = qualityGateClient
+								.retrieveQualityGateDetails(qualityGateToUse.getId());
+						qualityGateClient.associateQualityGate(qualityGate.getId(),
+								Integer.parseInt(projects.get(0).getId()));
+
+					} else {
+						throw new InterruptedException("Encountered an issue locating quality gate details");
+					}
+
+				} catch (Exception e) {
+					throw new InterruptedException(e.getLocalizedMessage());
+				}
+			}
+
+			try {
+				if (null != sonarTeamName && null != sonarAppName) {
+					listener.getLogger().println("Gathering Sonar Projects");
+					ProjectClient projectClient = new ProjectClient(getDescriptor().getSonarHost(),
+							getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
+					List<Project> projects = retrieveProjectsForKey(projectClient, sonarResourceKey);
+					if (projects.size() > 1) {
+						throw new InterruptedException("Please be mores specific when defining sonar.resource.key");
+					}
+
+					if (projects.size() == 0) {
+						throw new InterruptedException("Did not find any projects for that resource key");
+					}
+
+					QualityGateClient qualityGateClient = new QualityGateClient(getDescriptor().getSonarHost(),
+							getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
+
+					listener.getLogger().println("Looking for matching quality gate to identify with project");
+					QualityGate qualityGateToUse = findQualityGate(qualityGateClient,
+							sonarTeamName + "-" + sonarAppName);
+
+					QualityGate qualityGateToAssociate = null;
+					if (null != qualityGateToUse) {
+						listener.getLogger().println("Retrieving Quality Gate Details");
+						QualityGate qualityGate = qualityGateClient
+								.retrieveQualityGateDetails(qualityGateToUse.getId());
+
+						listener.getLogger().println("Retrieving Details of Quality Gate Condition");
+						QualityGateCondition conditionToUpdate = retrieveConditionDetails(qualityGate);
+
+						if (null != conditionToUpdate) {
+							if (!(conditionToUpdate.getWarning() == Integer.parseInt(codeCoverageGoal)
+									&& conditionToUpdate.getError() == Integer.parseInt(codeCoverageBreakLevel))) {
+								listener.getLogger().println("Updating Quality Gate Condition");
+								updateQualityCondition(qualityGateClient, conditionToUpdate, codeCoverageBreakLevel,
+										codeCoverageGoal);
+							}
+						} else {
+							listener.getLogger().println("Creating new Quality Gate Condition");
+							createQualityGateCondition(qualityGateClient, codeCoverageBreakLevel, codeCoverageGoal,
+									qualityGateToUse);
+						}
+
+						qualityGateToAssociate = qualityGate;
+					} else {
+						listener.getLogger().println("Creating Quality Gate");
+						QualityGate qualityGate = qualityGateClient
+								.createQualityGate(sonarTeamName + "-" + sonarAppName);
+						qualityGateToAssociate = qualityGate;
+
+						listener.getLogger().println("Creating Quality Gate Condition");
+						createQualityGateCondition(qualityGateClient, codeCoverageBreakLevel, codeCoverageGoal,
+								qualityGate);
+					}
+
+					listener.getLogger().println("Associate Quality Gate to Project");
+					qualityGateClient.associateQualityGate(qualityGateToAssociate.getId(),
+							Integer.parseInt(projects.get(0).getId()));
+				}
+
+			} catch (Exception e) {
+				throw new InterruptedException(e.getLocalizedMessage());
+			}
 		} catch (Exception e) {
 			listener.getLogger().println(e.getLocalizedMessage());
 			throw new InterruptedException(e.getLocalizedMessage());
-		}
-
-		// Ensure all required properties are set
-		final String sonarTeamName = props.getProperty("sonar.team.name");
-		final String sonarAppName = props.getProperty("sonar.app.name");
-		final String codeCoverageGoal = props.getProperty("sonar.codecoverage.goal");
-		final String codeCoverageBreakLevel = props.getProperty("sonar.codecoverage.breaklevel");
-		final String sonarResourceKey = props.getProperty("sonar.resource.key");
-		final String useDefaultGateWay = props.getProperty("sonar.useDefault.qualitygate");
-
-		boolean throwException = false;
-		if (null == useDefaultGateWay || useDefaultGateWay.isEmpty()) {
-			if (null == sonarTeamName || sonarTeamName.isEmpty()) {
-				listener.getLogger().println("sonar.team.name is empty or null");
-				throwException = true;
-			}
-
-			if (null == sonarAppName || sonarAppName.isEmpty()) {
-				listener.getLogger().println("sonar.app.name is empty or null");
-				throwException = true;
-			}
-
-			if (null == codeCoverageGoal || codeCoverageGoal.isEmpty()) {
-				listener.getLogger().println("sonar.codecoverage.goal is empty or null");
-				throwException = true;
-			}
-
-			if (null == codeCoverageBreakLevel || codeCoverageBreakLevel.isEmpty()) {
-				listener.getLogger().println("sonar.codecoverage.breaklevel is empty or null");
-				throwException = true;
-			}
-
-			if (null == sonarResourceKey || sonarResourceKey.isEmpty()) {
-				listener.getLogger().println("sonar.resource.key is empty or null");
-				throwException = true;
-			}
-
-			if (throwException) {
-				listener.getLogger().println("Aborting the build, no properties were set to utilize quality gates");
-				throw new InterruptedException();
-			}
-		} else {
-			if (null == sonarResourceKey || sonarResourceKey.isEmpty()) {
-				listener.getLogger().println("sonar.resource.key is empty or null");
-				throwException = true;
-			}
-
-			if (throwException) {
-				listener.getLogger().println(
-						"Aborting the build, sonar.resource.key must be set to associate default quality gate");
-				throw new InterruptedException();
-			}
-			List<Project> projects;
-			try {
-				ProjectClient projectClient = new ProjectClient(getDescriptor().getSonarHost(),
-						getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
-				projects = retrieveProjectsForKey(projectClient, sonarResourceKey);
-				if (projects.size() > 1) {
-					listener.getLogger().println("Please be mores specific when defining sonar.resource.key");
-					throw new InterruptedException();
-				}
-
-				if (projects.size() == 0) {
-					listener.getLogger().println("Did not find any projects for that resource key");
-					throw new InterruptedException();
-				}
-
-			} catch (Exception e) {
-				listener.getLogger().println("Encountered an issue finding a project to associate");
-				throw new InterruptedException();
-			}
-			try {
-				QualityGateClient qualityGateClient = new QualityGateClient(getDescriptor().getSonarHost(),
-						getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
-
-				listener.getLogger().println("Looking for matching quality gate to identify with project");
-				QualityGate qualityGateToUse = findQualityGate(qualityGateClient,
-						getDescriptor().getDefaultQualityGateName());
-
-				if (null != qualityGateToUse) {
-					listener.getLogger().println("Retrieving Quality Gate Details");
-					QualityGate qualityGate = qualityGateClient.retrieveQualityGateDetails(qualityGateToUse.getId());
-					qualityGateClient.associateQualityGate(qualityGate.getId(),
-							Integer.parseInt(projects.get(0).getId()));
-
-				} else {
-					listener.getLogger().println("Encountered an issue locating quality gate details");
-					throw new InterruptedException();
-				}
-
-			} catch (Exception e) {
-				listener.getLogger().println("Encountered an issue locating quality gate details");
-				throw new InterruptedException();
-			}
-			return;
-		}
-
-		try {
-			listener.getLogger().println("Gathering Sonar Projects");
-			ProjectClient projectClient = new ProjectClient(getDescriptor().getSonarHost(),
-					getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
-			List<Project> projects = retrieveProjectsForKey(projectClient, sonarResourceKey);
-			if (projects.size() > 1) {
-				listener.getLogger().println("Please be mores specific when defining sonar.resource.key");
-				throw new InterruptedException();
-			}
-
-			if (projects.size() == 0) {
-				listener.getLogger().println("Did not find any projects for that resource key");
-				throw new InterruptedException();
-			}
-
-			QualityGateClient qualityGateClient = new QualityGateClient(getDescriptor().getSonarHost(),
-					getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
-
-			listener.getLogger().println("Looking for matching quality gate to identify with project");
-			QualityGate qualityGateToUse = findQualityGate(qualityGateClient, sonarTeamName + "-" + sonarAppName);
-
-			QualityGate qualityGateToAssociate = null;
-			if (null != qualityGateToUse) {
-				listener.getLogger().println("Retrieving Quality Gate Details");
-				QualityGate qualityGate = qualityGateClient.retrieveQualityGateDetails(qualityGateToUse.getId());
-
-				listener.getLogger().println("Retrieving Details of Quality Gate Condition");
-				QualityGateCondition conditionToUpdate = retrieveConditionDetails(qualityGate);
-
-				if (null != conditionToUpdate) {
-					if (!(conditionToUpdate.getWarning() == Integer.parseInt(codeCoverageGoal)
-							&& conditionToUpdate.getError() == Integer.parseInt(codeCoverageBreakLevel))) {
-						listener.getLogger().println("Updating Quality Gate Condition");
-						updateQualityCondition(qualityGateClient, conditionToUpdate, codeCoverageBreakLevel,
-								codeCoverageGoal);
-					}
-				} else {
-					listener.getLogger().println("Creating new Quality Gate Condition");
-					createQualityGateCondition(qualityGateClient, codeCoverageBreakLevel, codeCoverageGoal,
-							qualityGateToUse);
-				}
-
-				qualityGateToAssociate = qualityGate;
-			} else {
-				listener.getLogger().println("Creating Quality Gate");
-				QualityGate qualityGate = qualityGateClient.createQualityGate(sonarTeamName + "-" + sonarAppName);
-				qualityGateToAssociate = qualityGate;
-
-				listener.getLogger().println("Creating Quality Gate Condition");
-				createQualityGateCondition(qualityGateClient, codeCoverageBreakLevel, codeCoverageGoal, qualityGate);
-			}
-
-			listener.getLogger().println("Associate Quality Gate to Project");
-			qualityGateClient.associateQualityGate(qualityGateToAssociate.getId(),
-					Integer.parseInt(projects.get(0).getId()));
-
-		} catch (Exception e) {
-			listener.getLogger().println(e.getMessage());
-			listener.getLogger().println(e.getLocalizedMessage());
-			throw new InterruptedException(
-					"Could not update quality gate please check your properties file for errors ");
 		}
 
 	}
