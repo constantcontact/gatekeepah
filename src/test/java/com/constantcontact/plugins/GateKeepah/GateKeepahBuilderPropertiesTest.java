@@ -12,7 +12,6 @@ public class GateKeepahBuilderPropertiesTest {
 	@Test
 	public void testReadPropertiesHappy() throws Exception {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-
 		URL url = classloader.getResource("testconfig.properties");
 
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(url.getPath(), "");
