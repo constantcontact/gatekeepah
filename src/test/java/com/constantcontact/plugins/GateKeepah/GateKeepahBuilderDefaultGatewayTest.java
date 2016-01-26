@@ -125,19 +125,4 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		Assert.assertEquals(true, s.contains("Did not find any projects for that resource key"));
 	}
 
-	@Test
-	public void testAbilityToAddGateKeepahBadQualityGate() throws Exception {
-		FreeStyleProject project = jenkinsRule.createFreeStyleProject();
-		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder("", "sonar.resource.key=20589");
-		project.getBuildersList().add(gateKeepahBuilder);
-		project.getBuildersList().add(new Shell("echo hello"));
-		project.save();
-
-		FreeStyleBuild build = project.scheduleBuild2(0).get();
-		System.out.println(build.getDisplayName() + " completed");
-		String s = FileUtils.readFileToString(build.getLogFile());
-		System.out.println(s);
-		Assert.assertEquals(true, s.contains("Encountered an issue locating quality gate details"));
-	}
-
 }
