@@ -56,6 +56,7 @@ public class GateKeepahBuilderPropertiesTest {
 	@Test
 	public void testReadPropertiesFileEmpty() throws Exception {
 		URL url = getClass().getResource("testconfigEmpty.properties");
+		System.out.println("TESTSTRING " + url.getPath());
 
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(url.getPath(), "");
 		final String filePath = url.getPath().replace("/testconfigEmpty.properties", "");

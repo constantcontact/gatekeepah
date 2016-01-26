@@ -139,13 +139,13 @@ public class GateKeepahBuilderTest {
 	@Test
 	public void testAbilityToAddGateKeepahEmptyProps() throws Exception {
 		runTest(new GateKeepahBuilder(null, ""),
-				"A properties file must be in the right place or properties added to the text area");
+				"Aborting the build, no properties were set to utilize quality gates");
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahAllEmpty() throws Exception {
 		runTest(new GateKeepahBuilder("", ""),
-				"A properties file must be in the right place or properties added to the text area");
+				"Aborting the build, no properties were set to utilize quality gates");
 	}
 
 	private void runTest(final GateKeepahBuilder gateKeepahBuilder, final String assertion) throws Exception {

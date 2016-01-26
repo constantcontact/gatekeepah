@@ -174,16 +174,16 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		return conditionToUpdate;
 	}
 
-	public void updateQualityCondition(final QualityGateClient qualityGateClient,
+	public QualityGateCondition updateQualityCondition(final QualityGateClient qualityGateClient,
 			final QualityGateCondition conditionToUpdate, final String codeCoverageBreakLevel,
 			final String codeCoverageGoal) throws Exception {
 		conditionToUpdate.setError(Integer.parseInt(codeCoverageBreakLevel));
 		conditionToUpdate.setWarning(Integer.parseInt(codeCoverageGoal));
 		conditionToUpdate.setOp("LT");
-		qualityGateClient.updateQualityGateCondition(conditionToUpdate);
+		return qualityGateClient.updateQualityGateCondition(conditionToUpdate);
 	}
 
-	public void createQualityGateCondition(final QualityGateClient qualityGateClient,
+	public QualityGateCondition createQualityGateCondition(final QualityGateClient qualityGateClient,
 			final String codeCoverageBreakLevel, final String codeCoverageGoal, final QualityGate qualityGateToUse)
 					throws Exception {
 		QualityGateCondition condition = new QualityGateCondition();
@@ -192,7 +192,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		condition.setOp("LT");
 		condition.setGateId(qualityGateToUse.getId());
 		condition.setMetric("coverage");
-		qualityGateClient.createQualityGateCondition(condition);
+		return qualityGateClient.createQualityGateCondition(condition);
 	}
 
 	@Override
