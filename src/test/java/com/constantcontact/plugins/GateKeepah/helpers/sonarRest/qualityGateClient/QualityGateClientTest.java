@@ -16,7 +16,7 @@ import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.Qua
 public class QualityGateClientTest {
 
 	private Properties props;
-	private List<QualityGate> qualityGatesToDestroy;
+	private static List<QualityGate> qualityGatesToDestroy;
 
 	@Before
 	public void testSetup() throws Exception {
@@ -92,6 +92,15 @@ public class QualityGateClientTest {
 		QualityGateClient client = new QualityGateClient(props.get("sonar.test.host").toString(),
 				props.get("sonar.test.username").toString(), props.get("sonar.test.password").toString());
 		client.createQualityGateCondition(qualityGateCondition);
+	}
+	
+	@Test
+	public void createAndDestroy() throws Exception {
+		QualityGateClient client = new QualityGateClient(props.get("sonar.test.host").toString(),
+				props.get("sonar.test.username").toString(), props.get("sonar.test.password").toString());
+		QualityGate qualityGate = client.createQualityGate("Ryans Test" + System.currentTimeMillis());
+		client.destroyQualityGate(qualityGate.getId());
+
 	}
 
 }

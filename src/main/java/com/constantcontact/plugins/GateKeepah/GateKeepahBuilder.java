@@ -52,65 +52,73 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		return additionalProperties;
 	}
 
-	public Properties readPropertiesFile(final FilePath workspace, String propertiesFileName,
-			final String additionalProperties, final TaskListener listener) throws InterruptedException {
+	public Properties readPropertiesFile(String filePath, String propertiesFileName, final String additionalProperties)
+			throws InterruptedException {
 		Properties props;
 
 		try {
 			if (null == propertiesFileName) {
 				throw new Exception("No file name found, creating our own");
 			}
-			InputStream input = new FileInputStream(workspace.absolutize() + File.separator + propertiesFileName);
+			InputStream input = new FileInputStream(filePath + File.separator + propertiesFileName);
 			props = new Properties();
 			props.load(input);
-			if (null != additionalProperties) {
+
+			if (null != additionalProperties && !additionalProperties.isEmpty()) {
 				for (String line : additionalProperties.split(System.getProperty("line.separator"))) {
 					String[] newProperty = line.split("=");
-					props.setProperty(newProperty[0], newProperty[1]);
+					try {
+						props.setProperty(newProperty[0], newProperty[1]);
+					} catch (ArrayIndexOutOfBoundsException oobe) {
+						throw new InterruptedException(
+								"Property could not be set for " + line + " because it was missing its value");
+					}
 				}
 				try {
-					File file = new File(workspace.absolutize() + File.separator + propertiesFileName);
+					File file = new File(filePath + File.separator + propertiesFileName);
 					FileOutputStream fileOut = new FileOutputStream(file);
 					props.store(fileOut, "GateKeepah Properties");
 					fileOut.close();
 				} catch (FileNotFoundException fnfe) {
 					fnfe.printStackTrace();
+					throw new InterruptedException(fnfe.getMessage());
 				} catch (IOException ioe) {
 					ioe.printStackTrace();
+					throw new InterruptedException(ioe.getMessage());
 				}
 			}
 		} catch (Exception e) {
+			if (e instanceof InterruptedException) {
+				throw new InterruptedException(e.getMessage());
+			}
 
 			props = new Properties();
-			if (null != additionalProperties) {
+			if (null != additionalProperties && !additionalProperties.isEmpty()) {
 				for (String line : additionalProperties.split(System.getProperty("line.separator"))) {
 					if (line.length() < 1) {
-						listener.getLogger().println(
+						throw new InterruptedException(
 								"A properties file must be in the right place or properties added to the text area");
-						throw new InterruptedException();
 					}
-					listener.getLogger().println("Creating Property for " + line);
 					String[] newProperty = line.split("=");
 
 					try {
 						props.setProperty(newProperty[0], newProperty[1]);
 					} catch (ArrayIndexOutOfBoundsException oobe) {
-						listener.getLogger().println(
+						throw new InterruptedException(
 								"Property could not be set for " + line + " because it was missing its value");
-						throw new InterruptedException();
 					}
 				}
 				try {
-					File file = new File(workspace.absolutize() + File.separator + "gatekeepah.properties");
+					File file = new File(filePath + File.separator + "gatekeepah.properties");
 					FileOutputStream fileOut = new FileOutputStream(file);
 					props.store(fileOut, "GateKeepah Properties");
 					fileOut.close();
 				} catch (FileNotFoundException fnfe) {
 					fnfe.printStackTrace();
+					throw new InterruptedException(fnfe.getMessage());
 				} catch (IOException ioe) {
 					ioe.printStackTrace();
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
+					throw new InterruptedException(ioe.getMessage());
 				}
 			}
 
@@ -118,9 +126,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		return props;
 	}
 
-	public List<Project> gatherProjectsForKey(final String sonarResourceKey) throws Exception {
-		ProjectClient projectClient = new ProjectClient(getDescriptor().getSonarHost(),
-				getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
+	public List<Project> retrieveProjectsForKey(final ProjectClient projectClient, final String sonarResourceKey) throws Exception {
 		List<Project> projects = projectClient.retrieveIndexOfProjects(sonarResourceKey);
 
 		return projects;
@@ -213,7 +219,13 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			throw new InterruptedException();
 		}
 
-		Properties props = readPropertiesFile(workspace, propertiesFileName, additionalProperties, listener);
+		Properties props = null;
+		try {
+			props = readPropertiesFile(workspace.absolutize().toString(), propertiesFileName, additionalProperties);
+		} catch (Exception e) {
+			listener.getLogger().println(e.getLocalizedMessage());
+			throw new InterruptedException(e.getLocalizedMessage());
+		}
 
 		// Ensure all required properties are set
 		final String sonarTeamName = props.getProperty("sonar.team.name");
@@ -267,7 +279,9 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			}
 			List<Project> projects;
 			try {
-				projects = gatherProjectsForKey(sonarResourceKey);
+				ProjectClient projectClient = new ProjectClient(getDescriptor().getSonarHost(),
+						getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
+				projects = retrieveProjectsForKey(projectClient, sonarResourceKey);
 				if (projects.size() > 1) {
 					listener.getLogger().println("Please be mores specific when defining sonar.resource.key");
 					throw new InterruptedException();
@@ -310,7 +324,9 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 		try {
 			listener.getLogger().println("Gathering Sonar Projects");
-			List<Project> projects = gatherProjectsForKey(sonarResourceKey);
+			ProjectClient projectClient = new ProjectClient(getDescriptor().getSonarHost(),
+					getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword());
+			List<Project> projects = retrieveProjectsForKey(projectClient, sonarResourceKey);
 			if (projects.size() > 1) {
 				listener.getLogger().println("Please be mores specific when defining sonar.resource.key");
 				throw new InterruptedException();
