@@ -1,9 +1,7 @@
 package com.constantcontact.plugins.GateKeepah;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -26,105 +24,101 @@ public class GateKeepahBuilderNegativeTest {
 	public String assertion2 = "Sonar Username was not set in global configuration";
 	public String assertion3 = "Sonar Password was not set in global configuration";
 
-	public Properties props;
+	public TestDataHelper testHelper;
 
 	@Before
 	public void testSetup() throws Exception {
-
-		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream is = classloader.getResourceAsStream("config.properties");
-		props = new Properties();
-		props.load(is);
+		testHelper = new TestDataHelper();
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepah() throws Exception {
 		runTest(new GateKeepahBuilder("",
-				"sonar.qualityGateName=" + props.get("sonar.test.gate.name").toString() + "\nsonar.projectKey="
-						+ props.get("sonar.test.project.id").toString() + "\nsonar.codeCoverageBreakLevel="
-						+ props.get("sonar.test.codecoverage.breaklevel").toString() + "\nsonar.codeCoverageGoal="
-						+ props.get("sonar.test.codecoverage.goal").toString() + "\nsonar.projectName="
-						+ props.get("sonar.test.project.name")));
+				"sonar.qualityGateName=" + testHelper.getGateName() + "\nsonar.projectKey="
+						+ testHelper.getProjectId() + "\nsonar.codeCoverageBreakLevel="
+						+ testHelper.getCodeCoverageBreakLevel() + "\nsonar.codeCoverageGoal="
+						+ testHelper.getCodeCoverageGoal() + "\nsonar.projectName="
+						+ testHelper.getProjectName()));
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahNullPropertyName() throws Exception {
 		runTest(new GateKeepahBuilder(null,
-				"sonar.qualityGateName=" + props.get("sonar.test.gate.name").toString() + "\nsonar.projectKey="
-						+ props.get("sonar.test.gate.name").toString() + "\nsonar.codeCoverageBreakLevel="
-						+ props.get("sonar.test.codecoverage.breaklevel").toString() + "\nsonar.codeCoverageGoal="
-						+ props.get("sonar.test.codecoverage.goal").toString() + "\nsonar.projectName="
-						+ props.get("sonar.test.project.name")));
+				"sonar.qualityGateName=" + testHelper.getGateName() + "\nsonar.projectKey="
+						+ testHelper.getGateName() + "\nsonar.codeCoverageBreakLevel="
+						+ testHelper.getCodeCoverageBreakLevel() + "\nsonar.codeCoverageGoal="
+						+ testHelper.getCodeCoverageGoal() + "\nsonar.projectName="
+						+ testHelper.getProjectName()));
 	}
 
 	@Test
 	public void testGateKeepahEmptyTeam() throws Exception {
-		runTest(buildGateKeepahProperties("", props.get("sonar.test.project.id").toString(),
-				props.get("sonar.test.codecoverage.goal").toString(),
-				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"));
+		runTest(buildGateKeepahProperties("", testHelper.getProjectId(),
+				testHelper.getCodeCoverageGoal(),
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahEmptyResourceKey() throws Exception {
-		runTest(buildGateKeepahProperties(props.get("sonar.test.gate.name").toString(), "",
-				props.get("sonar.test.codecoverage.goal").toString(),
-				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), "",
+				testHelper.getCodeCoverageGoal(),
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahEmptyBreakLevel() throws Exception {
-		runTest(buildGateKeepahProperties(props.get("sonar.test.gate.name").toString(),
-				props.get("sonar.test.project.id").toString(), "",
-				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(),
+				testHelper.getProjectId(), "",
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahEmptyCoverageGoal() throws Exception {
-		runTest(buildGateKeepahProperties(props.get("sonar.test.gate.name").toString(),
-				props.get("sonar.test.project.id").toString(), props.get("sonar.test.codecoverage.goal").toString(), "",
+		runTest(buildGateKeepahProperties(testHelper.getGateName(),
+				testHelper.getProjectId(), testHelper.getCodeCoverageGoal(), "",
 				"gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahEmptyAppName() throws Exception {
-		runTest(buildGateKeepahProperties(props.get("sonar.test.gate.name").toString(),
-				props.get("sonar.test.project.id").toString(), props.get("sonar.test.codecoverage.goal").toString(),
-				props.get("sonar.test.codecoverage.breaklevel").toString(), ""));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(),
+				testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
+				testHelper.getCodeCoverageBreakLevel(), ""));
 	}
 
 	@Test
 	public void testGateKeepahNullTeam() throws Exception {
-		runTest(buildGateKeepahProperties(null, props.get("sonar.test.project.id").toString(),
-				props.get("sonar.test.codecoverage.goal").toString(),
-				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"));
+		runTest(buildGateKeepahProperties(null, testHelper.getProjectId(),
+				testHelper.getCodeCoverageGoal(),
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahNullResourceKey() throws Exception {
-		runTest(buildGateKeepahProperties(props.get("sonar.test.gate.name").toString(), null,
-				props.get("sonar.test.codecoverage.goal").toString(),
-				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), null,
+				testHelper.getCodeCoverageGoal(),
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahNullBreakLevel() throws Exception {
-		runTest(buildGateKeepahProperties(props.get("sonar.test.gate.name").toString(),
-				props.get("sonar.test.project.id").toString(), null,
-				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(),
+				testHelper.getProjectId(), null,
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahNullCoverageGoal() throws Exception {
-		runTest(buildGateKeepahProperties(props.get("sonar.test.gate.name").toString(),
-				props.get("sonar.test.project.id").toString(), props.get("sonar.test.codecoverage.goal").toString(),
+		runTest(buildGateKeepahProperties(testHelper.getGateName(),
+				testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
 				null, "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahNullAppName() throws Exception {
-		runTest(buildGateKeepahProperties(props.get("sonar.test.gate.name").toString(),
-				props.get("sonar.test.project.id").toString(), props.get("sonar.test.codecoverage.goal").toString(),
-				props.get("sonar.test.codecoverage.breaklevel").toString(), null));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(),
+				testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
+				testHelper.getCodeCoverageBreakLevel(), null));
 	}
 
 	@Test

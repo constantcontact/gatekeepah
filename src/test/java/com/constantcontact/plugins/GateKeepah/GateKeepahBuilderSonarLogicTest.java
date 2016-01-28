@@ -1,8 +1,6 @@
 package com.constantcontact.plugins.GateKeepah;
 
-import java.io.InputStream;
 import java.util.List;
-import java.util.Properties;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -15,26 +13,23 @@ import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.Qua
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.QualityGateCondition;
 
 public class GateKeepahBuilderSonarLogicTest {
-	private Properties props;
+	private TestDataHelper testHelper;
 
 	@Before
 	public void setup() throws Exception {
-		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream is = classloader.getResourceAsStream("config.properties");
-		props = new Properties();
-		props.load(is);
+		testHelper = new TestDataHelper();
 	}
 
 	@Test
 	public void retrieveProjectsForKey() throws Exception {
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "test3=test3");
-		ProjectClient client = new ProjectClient(props.get("sonar.test.host").toString(),
-				props.get("sonar.test.username").toString(), props.get("sonar.test.password").toString());
+		ProjectClient client = new ProjectClient(testHelper.getHost(),
+				testHelper.getUserName(), testHelper.getPassword());
 		List<Project> projects = gateKeepahBuilder.retrieveProjectsForKey(client,
-				props.get("sonar.test.project.id").toString());
+				testHelper.getProjectId());
 		boolean foundProject = false;
 		for (Project project : projects) {
-			if (project.getId().toString().equals(props.get("sonar.test.project.id").toString())) {
+			if (project.getId().toString().equals(testHelper.getProjectId())) {
 				foundProject = true;
 			}
 		}
@@ -44,22 +39,22 @@ public class GateKeepahBuilderSonarLogicTest {
 	@Test
 	public void findQualityGate() throws Exception {
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "test3=test3");
-		QualityGateClient client = new QualityGateClient(props.get("sonar.test.host").toString(),
-				props.get("sonar.test.username").toString(), props.get("sonar.test.password").toString());
+		QualityGateClient client = new QualityGateClient(testHelper.getHost(),
+				testHelper.getUserName(), testHelper.getPassword());
 
 		QualityGate qualityGate = gateKeepahBuilder.findQualityGate(client,
-				props.get("sonar.test.gate.name").toString());
-		Assert.assertEquals(true, qualityGate.getName().equalsIgnoreCase(props.get("sonar.test.gate.name").toString()));
+				testHelper.getGateName());
+		Assert.assertEquals(true, qualityGate.getName().equalsIgnoreCase(testHelper.getGateName()));
 	}
 
 	@Test
 	public void retrieveQualityGateDetails() throws Exception {
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "test3=test3");
-		QualityGateClient client = new QualityGateClient(props.get("sonar.test.host").toString(),
-				props.get("sonar.test.username").toString(), props.get("sonar.test.password").toString());
+		QualityGateClient client = new QualityGateClient(testHelper.getHost(),
+				testHelper.getUserName(), testHelper.getPassword());
 
 		QualityGate qualityGateToUse = gateKeepahBuilder.findQualityGate(client,
-				props.get("sonar.test.gate.name").toString());
+				testHelper.getGateName());
 		QualityGateCondition conditionToUpdate = gateKeepahBuilder.retrieveQualityGateDetails(client, qualityGateToUse);
 		Assert.assertNotEquals(null, conditionToUpdate);
 	}
@@ -67,11 +62,11 @@ public class GateKeepahBuilderSonarLogicTest {
 	@Test
 	public void retrieveConditionDetails() throws Exception {
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "test3=test3");
-		QualityGateClient client = new QualityGateClient(props.get("sonar.test.host").toString(),
-				props.get("sonar.test.username").toString(), props.get("sonar.test.password").toString());
+		QualityGateClient client = new QualityGateClient(testHelper.getHost(),
+				testHelper.getUserName(), testHelper.getPassword());
 
 		QualityGate qualityGateToUse = gateKeepahBuilder.findQualityGate(client,
-				props.get("sonar.test.gate.name").toString());
+				testHelper.getGateName());
 		QualityGate qualityGate = client.retrieveQualityGateDetails(qualityGateToUse.getId());
 		QualityGateCondition conditionToUpdate = gateKeepahBuilder.retrieveConditionDetails(qualityGate);
 		Assert.assertNotEquals(null, conditionToUpdate);
@@ -80,31 +75,31 @@ public class GateKeepahBuilderSonarLogicTest {
 	@Test
 	public void updateQualityCondition() throws Exception {
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "test3=test3");
-		QualityGateClient client = new QualityGateClient(props.get("sonar.test.host").toString(),
-				props.get("sonar.test.username").toString(), props.get("sonar.test.password").toString());
+		QualityGateClient client = new QualityGateClient(testHelper.getHost(),
+				testHelper.getUserName(), testHelper.getPassword());
 
 		QualityGate qualityGateToUse = gateKeepahBuilder.findQualityGate(client,
-				props.get("sonar.test.gate.name").toString());
+				testHelper.getGateName());
 		QualityGate qualityGate = client.retrieveQualityGateDetails(qualityGateToUse.getId());
 		QualityGateCondition conditionToUpdate = gateKeepahBuilder.retrieveConditionDetails(qualityGate);
 		QualityGateCondition updatedQualityCondition = gateKeepahBuilder.updateQualityCondition(client,
-				conditionToUpdate, props.get("sonar.test.codecoverage.goal").toString(),
-				props.get("sonar.test.codecoverage.breaklevel").toString());
+				conditionToUpdate, testHelper.getCodeCoverageGoal(),
+				testHelper.getCodeCoverageBreakLevel());
 		Assert.assertNotEquals(null, updatedQualityCondition);
 	}
 
 	@Test
 	public void createQualityGateCondition() throws Exception {
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "test3=test3");
-		QualityGateClient client = new QualityGateClient(props.get("sonar.test.host").toString(),
-				props.get("sonar.test.username").toString(), props.get("sonar.test.password").toString());
+		QualityGateClient client = new QualityGateClient(testHelper.getHost(),
+				testHelper.getUserName(), testHelper.getPassword());
 
 		QualityGate qualityGateToUse = gateKeepahBuilder.findQualityGate(client,
-				props.get("sonar.test.gate.name").toString());
+				testHelper.getGateName());
 		QualityGate qualityGate = client.retrieveQualityGateDetails(qualityGateToUse.getId());
 		QualityGateCondition newlyCreatedCondition = gateKeepahBuilder.createQualityGateCondition(client,
-				props.get("sonar.test.codecoverage.breaklevel").toString(),
-				props.get("sonar.test.codecoverage.goal").toString(), qualityGate);
+				testHelper.getCodeCoverageBreakLevel(),
+				testHelper.getCodeCoverageGoal(), qualityGate);
 		Assert.assertNotEquals(null, newlyCreatedCondition);
 	}
 

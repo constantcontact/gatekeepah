@@ -1,9 +1,7 @@
 package com.constantcontact.plugins.GateKeepah;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Assert;
@@ -27,26 +25,23 @@ public class GateKeepahBuilderDefaultGatewayTest {
 	public JenkinsRule jenkinsRule = new JenkinsRule();
 
 	public List<FreeStyleProject> projectsToDestroy = new ArrayList<FreeStyleProject>();
-	public Properties props;
+	public TestDataHelper testHelper;
 
 	@Before
 	public void testSetup() throws Exception {
 
-		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
-		InputStream is = classloader.getResourceAsStream("config.properties");
-		props = new Properties();
-		props.load(is);
+		testHelper = new TestDataHelper();
 
 		HtmlPage configPage = jenkinsRule.createWebClient().goTo("configure");
 		HtmlForm configForm = configPage.getFormByName("config");
 		HtmlTextInput sonarHostInput = configPage.getElementByName("_.sonarHost");
-		sonarHostInput.setValueAttribute(props.get("sonar.test.host").toString());
+		sonarHostInput.setValueAttribute(testHelper.getHost());
 		HtmlTextInput sonarUserName = configPage.getElementByName("_.sonarUserName");
-		sonarUserName.setValueAttribute(props.get("sonar.test.username").toString());
+		sonarUserName.setValueAttribute(testHelper.getUserName());
 		HtmlPasswordInput sonarPassword = configPage.getElementByName("_.sonarPassword");
-		sonarPassword.setValueAttribute(props.get("sonar.test.password").toString());
+		sonarPassword.setValueAttribute(testHelper.getPassword());
 		HtmlTextInput defaultQualityGateName = configPage.getElementByName("_.defaultQualityGateName");
-		defaultQualityGateName.setValueAttribute(props.get("sonar.test.gate.name").toString());
+		defaultQualityGateName.setValueAttribute(testHelper.getGateName());
 		jenkinsRule.submit(configForm);
 	}
 
@@ -54,7 +49,7 @@ public class GateKeepahBuilderDefaultGatewayTest {
 	public void testAbilityToAddGateKeepah() throws Exception {
 		FreeStyleProject project = jenkinsRule.createFreeStyleProject();
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "sonar.projectKey="
-				+ props.get("sonar.test.project.resource") + "\nsonar.projectName=" + props.get("sonar.test.project.name"));
+				+ testHelper.getProjectResource() + "\nsonar.projectName=" + testHelper.getProjectName());
 		project.getBuildersList().add(gateKeepahBuilder);
 		project.getBuildersList().add(new Shell("echo hello"));
 		project.save();
