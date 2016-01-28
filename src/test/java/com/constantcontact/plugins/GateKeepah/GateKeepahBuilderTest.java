@@ -45,7 +45,7 @@ public class GateKeepahBuilderTest {
 	@Test
 	public void testAbilityToAddGateKeepah() throws Exception {
 		runTest(new GateKeepahBuilder("",
-				"sonar.qualityGateName=autobots\nsonar.projectKey=" + testHelper.getProjectId()
+				"sonar.qualityGateName=" + testHelper.getGateName() + "\nsonar.projectKey=" + testHelper.getProjectId()
 						+ "\nsonar.codeCoverageBreakLevel=" + testHelper.getCodeCoverageBreakLevel()
 						+ "\nsonar.codeCoverageGoal=" + testHelper.getCodeCoverageGoal() + "\nsonar.projectName="
 						+ testHelper.getProjectName()),
@@ -55,7 +55,7 @@ public class GateKeepahBuilderTest {
 	@Test
 	public void testAbilityToAddGateKeepahNullPropertyName() throws Exception {
 		runTest(new GateKeepahBuilder(null,
-				"sonar.qualityGateName=autobots\nsonar.projectKey=" + testHelper.getProjectId()
+				"sonar.qualityGateName=" + testHelper.getGateName() + "\nsonar.projectKey=" + testHelper.getProjectId()
 						+ "\nsonar.codeCoverageBreakLevel=" + testHelper.getCodeCoverageBreakLevel()
 						+ "\nsonar.codeCoverageGoal=" + testHelper.getCodeCoverageGoal() + "\nsonar.projectName="
 						+ testHelper.getProjectName()),

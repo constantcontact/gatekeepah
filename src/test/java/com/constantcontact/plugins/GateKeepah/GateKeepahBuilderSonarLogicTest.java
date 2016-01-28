@@ -100,6 +100,7 @@ public class GateKeepahBuilderSonarLogicTest {
 		QualityGateCondition newlyCreatedCondition = gateKeepahBuilder.createQualityGateCondition(client,
 				testHelper.getCodeCoverageBreakLevel(),
 				testHelper.getCodeCoverageGoal(), qualityGate);
+		client.destroyQualityGateCondition(newlyCreatedCondition.getId());
 		Assert.assertNotEquals(null, newlyCreatedCondition);
 	}
 
