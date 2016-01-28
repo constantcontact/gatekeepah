@@ -62,11 +62,7 @@ public class GateKeepahBuilderPropertiesTest {
 	public void testReadPropertiesFileEmpty() throws Exception {
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		URL url = classloader.getResource("testconfigEmpty.properties");
-		if(null == url){
-			System.out.println("I AM NULL!!!!");
-			System.out.println("NAME: " + getClass().getName());
-		}
-
+		
 		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(url.getPath(), "");
 		final String filePath = url.getPath().replace(File.separator + "testconfigEmpty.properties", "");
 		Properties props = gateKeepahBuilder.readPropertiesFile(filePath, "testconfigEmpty.properties", "");

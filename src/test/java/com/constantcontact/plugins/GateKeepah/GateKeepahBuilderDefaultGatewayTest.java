@@ -27,13 +27,14 @@ public class GateKeepahBuilderDefaultGatewayTest {
 	public JenkinsRule jenkinsRule = new JenkinsRule();
 
 	public List<FreeStyleProject> projectsToDestroy = new ArrayList<FreeStyleProject>();
+	public Properties props;
 
 	@Before
 	public void testSetup() throws Exception {
 
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream is = classloader.getResourceAsStream("config.properties");
-		Properties props = new Properties();
+		props = new Properties();
 		props.load(is);
 
 		HtmlPage configPage = jenkinsRule.createWebClient().goTo("configure");
@@ -52,7 +53,8 @@ public class GateKeepahBuilderDefaultGatewayTest {
 	@Test
 	public void testAbilityToAddGateKeepah() throws Exception {
 		FreeStyleProject project = jenkinsRule.createFreeStyleProject();
-		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "sonar.resource.key=20589");
+		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder(null, "sonar.projectKey="
+				+ props.get("sonar.test.project.resource") + "\nsonar.projectName=" + props.get("sonar.test.project.name"));
 		project.getBuildersList().add(gateKeepahBuilder);
 		project.getBuildersList().add(new Shell("echo hello"));
 		project.save();
@@ -77,13 +79,13 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		String s = FileUtils.readFileToString(build.getLogFile());
 		System.out.println(s);
 		Assert.assertEquals(true,
-				s.contains("Aborting the build, sonar.resource.key must be set to associate default quality gate"));
+				s.contains("Aborting the build, sonar.projectKey must be set to associate default quality gate"));
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahGenericKey() throws Exception {
 		FreeStyleProject project = jenkinsRule.createFreeStyleProject();
-		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder("", "sonar.resource.key=com");
+		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder("", "sonar.projectKey=com");
 		project.getBuildersList().add(gateKeepahBuilder);
 		project.getBuildersList().add(new Shell("echo hello"));
 		project.save();
@@ -92,13 +94,13 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		System.out.println(build.getDisplayName() + " completed");
 		String s = FileUtils.readFileToString(build.getLogFile());
 		System.out.println(s);
-		Assert.assertEquals(true, s.contains("Did not find any projects for that resource key"));
+		Assert.assertEquals(true, s.contains("Did not find the project and could not create one, please enter values for sonar.projectKey and sonar.projectName"));
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahBadResourceKey() throws Exception {
 		FreeStyleProject project = jenkinsRule.createFreeStyleProject();
-		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder("", "sonar.resource.key=205891111");
+		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder("", "sonar.projectKey=205891111");
 		project.getBuildersList().add(gateKeepahBuilder);
 		project.getBuildersList().add(new Shell("echo hello"));
 		project.save();
@@ -107,13 +109,13 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		System.out.println(build.getDisplayName() + " completed");
 		String s = FileUtils.readFileToString(build.getLogFile());
 		System.out.println(s);
-		Assert.assertEquals(true, s.contains("Did not find any projects for that resource key"));
+		Assert.assertEquals(true, s.contains("Did not find the project and could not create one, please enter values for sonar.projectKey and sonar.projectName"));
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahBadResourceKey2() throws Exception {
 		FreeStyleProject project = jenkinsRule.createFreeStyleProject();
-		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder("", "sonar.resource.key=blue");
+		GateKeepahBuilder gateKeepahBuilder = new GateKeepahBuilder("", "sonar.projectKey=blue");
 		project.getBuildersList().add(gateKeepahBuilder);
 		project.getBuildersList().add(new Shell("echo hello"));
 		project.save();
@@ -122,7 +124,7 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		System.out.println(build.getDisplayName() + " completed");
 		String s = FileUtils.readFileToString(build.getLogFile());
 		System.out.println(s);
-		Assert.assertEquals(true, s.contains("Did not find any projects for that resource key"));
+		Assert.assertEquals(true, s.contains("Did not find the project and could not create one, please enter values for sonar.projectKey and sonar.projectName"));
 	}
 
 }

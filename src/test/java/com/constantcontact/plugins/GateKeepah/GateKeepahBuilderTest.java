@@ -27,13 +27,14 @@ public class GateKeepahBuilderTest {
 	public JenkinsRule jenkinsRule = new JenkinsRule();
 
 	public List<FreeStyleProject> projectsToDestroy = new ArrayList<FreeStyleProject>();
+	public Properties props;
 
 	@Before
 	public void testSetup() throws Exception {
 
 		ClassLoader classloader = Thread.currentThread().getContextClassLoader();
 		InputStream is = classloader.getResourceAsStream("config.properties");
-		Properties props = new Properties();
+		props = new Properties();
 		props.load(is);
 
 		HtmlPage configPage = jenkinsRule.createWebClient().goTo("configure");
@@ -50,73 +51,95 @@ public class GateKeepahBuilderTest {
 	@Test
 	public void testAbilityToAddGateKeepah() throws Exception {
 		runTest(new GateKeepahBuilder("",
-				"sonar.team.name=autobots\nsonar.resource.key=20589\nsonar.codecoverage.breaklevel=50\nsonar.codecoverage.goal=80\nsonar.app.name=gatekeepah"),
+				"sonar.qualityGateName=autobots\nsonar.projectKey=" + props.get("sonar.test.project.id").toString()
+						+ "\nsonar.codeCoverageBreakLevel=" + props.get("sonar.test.codecoverage.goal").toString()
+						+ "\nsonar.codeCoverageGoal=" + props.get("sonar.test.codecoverage.breaklevel")
+						+ "\nsonar.projectName=" + props.get("sonar.test.project.name")),
 				"+ echo hello");
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahNullPropertyName() throws Exception {
 		runTest(new GateKeepahBuilder(null,
-				"sonar.team.name=autobots\nsonar.resource.key=20589\nsonar.codecoverage.breaklevel=50\nsonar.codecoverage.goal=80\nsonar.app.name=gatekeepah"),
+				"sonar.qualityGateName=autobots\nsonar.projectKey=" + props.get("sonar.test.project.id").toString()
+						+ "\nsonar.codeCoverageBreakLevel=" + props.get("sonar.test.codecoverage.goal").toString()
+						+ "\nsonar.codeCoverageGoal=" + props.get("sonar.test.codecoverage.breaklevel")
+						+ "\nsonar.projectName=" + props.get("sonar.test.project.name")),
 				"+ echo hello");
 	}
 
 	@Test
-	public void testGateKeepahEmptyTeam() throws Exception {
-		runTest(buildGateKeepahProperties("", "20589", "50", "80", "gatekeepah"),
-				constructEmptyPropValue("sonar.team.name="));
+	public void testGateKeepahEmptyGateName() throws Exception {
+		runTest(buildGateKeepahProperties("", props.get("sonar.test.project.id").toString(),
+				props.get("sonar.test.codecoverage.goal").toString(),
+				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"),
+				constructEmptyPropValue("sonar.qualityGateName="));
 	}
 
 	@Test
 	public void testGateKeepahEmptyResourceKey() throws Exception {
-		runTest(buildGateKeepahProperties("autobots", "", "50", "80", "gatekeepah"),
-				constructEmptyPropValue("sonar.resource.key="));
+		runTest(buildGateKeepahProperties("autobots", "", props.get("sonar.test.codecoverage.goal").toString(),
+				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"),
+				constructEmptyPropValue("sonar.projectKey="));
 	}
 
 	@Test
 	public void testGateKeepahEmptyBreakLevel() throws Exception {
-		runTest(buildGateKeepahProperties("autobots", "20589", "", "80", "gatekeepah"),
-				constructEmptyPropValue("sonar.codecoverage.breaklevel="));
+		runTest(buildGateKeepahProperties("autobots", props.get("sonar.test.project.id").toString(), "",
+				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"),
+				constructEmptyPropValue("sonar.codeCoverageBreakLevel="));
 	}
 
 	@Test
 	public void testGateKeepahEmptyCoverageGoal() throws Exception {
-		runTest(buildGateKeepahProperties("autobots", "20589", "50", "", "gatekeepah"),
-				constructEmptyPropValue("sonar.codecoverage.goal="));
+		runTest(buildGateKeepahProperties("autobots", props.get("sonar.test.project.id").toString(),
+				props.get("sonar.test.codecoverage.goal").toString(), "", "gatekeepah"),
+				constructEmptyPropValue("sonar.codeCoverageGoal="));
 	}
 
 	@Test
 	public void testGateKeepahEmptyAppName() throws Exception {
-		runTest(buildGateKeepahProperties("autobots", "20589", "50", "80", ""),
-				constructEmptyPropValue("sonar.app.name="));
+		runTest(buildGateKeepahProperties("autobots", props.get("sonar.test.project.id").toString(),
+				props.get("sonar.test.codecoverage.goal").toString(),
+				props.get("sonar.test.codecoverage.breaklevel").toString(), ""),
+				constructEmptyPropValue("sonar.projectName="));
 	}
 
 	@Test
-	public void testGateKeepahNullTeam() throws Exception {
-		runTest(buildGateKeepahProperties(null, "20589", "50", "80", "gatekeepah"), "sonar.team.name is empty or null");
+	public void testGateKeepahNullGateName() throws Exception {
+		runTest(buildGateKeepahProperties(null, props.get("sonar.test.project.id").toString(),
+				props.get("sonar.test.codecoverage.goal").toString(),
+				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"),
+				"sonar.qualityGateName is empty or null");
 	}
 
 	@Test
 	public void testGateKeepahNullResourceKey() throws Exception {
-		runTest(buildGateKeepahProperties("autobots", null, "50", "80", "gatekeepah"),
-				"sonar.resource.key is empty or null");
+		runTest(buildGateKeepahProperties("autobots", null, props.get("sonar.test.codecoverage.goal").toString(),
+				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"),
+				"sonar.projectKey is empty or null");
 	}
 
 	@Test
 	public void testGateKeepahNullBreakLevel() throws Exception {
-		runTest(buildGateKeepahProperties("autobots", "20589", null, "80", "gatekeepah"),
-				"sonar.codecoverage.breaklevel is empty or null");
+		runTest(buildGateKeepahProperties("autobots", props.get("sonar.test.project.id").toString(), null,
+				props.get("sonar.test.codecoverage.breaklevel").toString(), "gatekeepah"),
+				"sonar.codeCoverageBreakLevel is empty or null");
 	}
 
 	@Test
 	public void testGateKeepahNullCoverageGoal() throws Exception {
-		runTest(buildGateKeepahProperties("autobots", "20589", "50", null, "gatekeepah"),
-				"sonar.codecoverage.goal is empty or null");
+		runTest(buildGateKeepahProperties("autobots", props.get("sonar.test.project.id").toString(),
+				props.get("sonar.test.codecoverage.goal").toString(), null, "gatekeepah"),
+				"sonar.codeCoverageGoal is empty or null");
 	}
 
 	@Test
 	public void testGateKeepahNullAppName() throws Exception {
-		runTest(buildGateKeepahProperties("autobots", "20589", "50", "80", null), "sonar.app.name is empty or null");
+		runTest(buildGateKeepahProperties("autobots", props.get("sonar.test.project.id").toString(),
+				props.get("sonar.test.codecoverage.goal").toString(),
+				props.get("sonar.test.codecoverage.breaklevel").toString(), null),
+				"sonar.projectName is empty or null");
 	}
 
 	@Test
@@ -138,14 +161,12 @@ public class GateKeepahBuilderTest {
 
 	@Test
 	public void testAbilityToAddGateKeepahEmptyProps() throws Exception {
-		runTest(new GateKeepahBuilder(null, ""),
-				"Aborting the build, no properties were set to utilize quality gates");
+		runTest(new GateKeepahBuilder(null, ""), "Aborting the build, no properties were set to utilize quality gates");
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahAllEmpty() throws Exception {
-		runTest(new GateKeepahBuilder("", ""),
-				"Aborting the build, no properties were set to utilize quality gates");
+		runTest(new GateKeepahBuilder("", ""), "Aborting the build, no properties were set to utilize quality gates");
 	}
 
 	private void runTest(final GateKeepahBuilder gateKeepahBuilder, final String assertion) throws Exception {
@@ -163,23 +184,23 @@ public class GateKeepahBuilderTest {
 		Assert.assertEquals(true, s.contains(assertion));
 	}
 
-	private GateKeepahBuilder buildGateKeepahProperties(final String teamName, final String resourceKey,
-			final String breakLevel, final String goal, final String appName) {
+	private GateKeepahBuilder buildGateKeepahProperties(final String qualityGateName, final String projectKey,
+			final String breakLevel, final String goal, final String projectName) {
 		StringBuilder ps = new StringBuilder();
-		if (null != teamName) {
-			ps.append("sonar.team.name=").append(teamName).append("\n");
+		if (null != qualityGateName) {
+			ps.append("sonar.qualityGateName=").append(qualityGateName).append("\n");
 		}
-		if (null != resourceKey) {
-			ps.append("sonar.resource.key=").append(resourceKey).append("\n");
+		if (null != projectKey) {
+			ps.append("sonar.projectKey=").append(projectKey).append("\n");
 		}
 		if (null != breakLevel) {
-			ps.append("sonar.codecoverage.breaklevel=").append(breakLevel).append("\n");
+			ps.append("sonar.codeCoverageBreakLevel=").append(breakLevel).append("\n");
 		}
 		if (null != goal) {
-			ps.append("sonar.codecoverage.goal=").append(goal).append("\n");
+			ps.append("sonar.codeCoverageGoal=").append(goal).append("\n");
 		}
-		if (null != appName) {
-			ps.append("sonar.app.name=").append(appName).append("\n");
+		if (null != projectName) {
+			ps.append("sonar.projectName=").append(projectName).append("\n");
 		}
 		System.out.println("GATE KEEPER BUILDER : " + ps.toString());
 		return new GateKeepahBuilder(null, ps.toString());

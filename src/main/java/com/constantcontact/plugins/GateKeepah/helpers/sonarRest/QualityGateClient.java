@@ -33,6 +33,9 @@ public class QualityGateClient extends Sonar {
 	public QualityGateCondition updateQualityGateCondition(final QualityGateCondition qualityGateCondition)
 			throws Exception {
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+		if (qualityGateCondition.getId() == 0) {
+			throw new Exception("Quality Gate Condition Id can not be 0, it is a required field");
+		}
 		formparams.add(new BasicNameValuePair("error", String.valueOf(qualityGateCondition.getError())));
 		formparams.add(new BasicNameValuePair("id", String.valueOf(qualityGateCondition.getId())));
 		formparams.add(new BasicNameValuePair("metric", String.valueOf(qualityGateCondition.getMetric())));
@@ -77,6 +80,9 @@ public class QualityGateClient extends Sonar {
 
 	public QualityGate createQualityGate(final String name) throws Exception {
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+		if (null == name || name.isEmpty()) {
+			throw new Exception("Name is a required field and needs to be set");
+		}
 		formparams.add(new BasicNameValuePair("name", name));
 		HttpEntity payload = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
 		String responseBody = getHttpHelper().doPost(this.getHost() + "/api/qualitygates/create", payload);
@@ -84,12 +90,19 @@ public class QualityGateClient extends Sonar {
 		QualityGate qualityGate = mapper.readValue(responseBody, QualityGate.class);
 		return qualityGate;
 	}
-	
+
 	public void destroyQualityGate(final int id) throws Exception {
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 		formparams.add(new BasicNameValuePair("id", String.valueOf(id)));
 		HttpEntity payload = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
 		getHttpHelper().doPost(this.getHost() + "/api/qualitygates/destroy", payload);
+	}
+	
+	public void destroyQualityGateCondition(final int id) throws Exception {
+		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
+		formparams.add(new BasicNameValuePair("id", String.valueOf(id)));
+		HttpEntity payload = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
+		getHttpHelper().doPost(this.getHost() + "/api/qualitygates/delete_condition", payload);
 	}
 
 	private HttpHelper getHttpHelper() {

@@ -106,7 +106,6 @@ public class GateKeepahBuilderSonarLogicTest {
 				props.get("sonar.test.codecoverage.breaklevel").toString(),
 				props.get("sonar.test.codecoverage.goal").toString(), qualityGate);
 		Assert.assertNotEquals(null, newlyCreatedCondition);
-
 	}
 
 }

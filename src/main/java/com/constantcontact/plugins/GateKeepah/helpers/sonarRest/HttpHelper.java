@@ -5,14 +5,19 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -84,12 +89,29 @@ public class HttpHelper {
 
 	public String doPost(final String url, final HttpEntity payload)
 			throws ClientProtocolException, IOException, URISyntaxException {
-		CloseableHttpClient httpClient = HttpClients.custom()
-				.setDefaultCredentialsProvider(buildCredentialsProvider(this.host, this.username, this.password))
-				.build();
+
+		URI uri = new URI(host);
+		HttpHost targetHost = new HttpHost(uri.getHost(), uri.getPort(), uri.getScheme());
+		CredentialsProvider credsProvider = new BasicCredentialsProvider();
+		credsProvider.setCredentials(new AuthScope(targetHost.getHostName(), targetHost.getPort()),
+				new UsernamePasswordCredentials(this.username, this.password));
+
+		CloseableHttpClient httpClient = HttpClients.custom().setDefaultCredentialsProvider(credsProvider).build();
+
 		try {
+
+			AuthCache authCache = new BasicAuthCache();
+
+			BasicScheme basicAuth = new BasicScheme();
+			authCache.put(targetHost, basicAuth);
+
+			HttpClientContext context = HttpClientContext.create();
+			context.setCredentialsProvider(credsProvider);
+			context.setAuthCache(authCache);
+
 			HttpPost httpPost = new HttpPost(url);
 			httpPost.setEntity(payload);
+
 			ResponseHandler<String> responseHandler = new ResponseHandler<String>() {
 
 				public String handleResponse(final HttpResponse response) throws ClientProtocolException, IOException {
@@ -107,7 +129,7 @@ public class HttpHelper {
 				}
 
 			};
-			return httpClient.execute(httpPost, responseHandler);
+			return httpClient.execute(httpPost, responseHandler, context);
 		} finally {
 			httpClient.close();
 		}
