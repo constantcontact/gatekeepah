@@ -1,11 +1,35 @@
 <div>
-	Properties File Name is the name of the properties file that will live in the workspace.  If it is not supplied gatekeepah.properties will be written from the additional properties field.
-	Properties file should contain:
-	sonar.team.name=
-	sonar.codecoverage.goal=
-	sonar.codecoverage.breaklevel=
-	sonar.resource.key=
-	sonar.app.name=
-	
-	E.g. gatekeepah.properties
+ 	<p>Propeties file name that will be used for Sonar and Gatekeepah</p>
+ 	
+ 	<p>E.g. propertName=PropertyValue</p>
+ 	
+ 	<p>All properties in this file will be overwritten by the additional properties field</p>
+ 	
+ 	<p>
+################<br>
+# Gatekeepah specific properties<br>
+################<br>
+sonar.qualityGateName<br>
+sonar.codeCoverageGoal<br>
+sonar.codeCoverageBreakLevel<br>
+<br>
+################<br>
+# Sonar Specific properties, these are required by sonar and used by gatekeepah<br>
+################<br>
+sonar.projectName<br>
+sonar.projectKey<br>
+sonar.projectVersion<br>
+sonar.sources<br>
+sonar.binaries<br>
+<br>
+###############<br>
+# Integration path<br>
+##############<br>
+sonar.jacoco.itReportPath<br>
+<br>
+<br>##############
+<br># Any other properties can be set that sonar has as optional properties
+<br>##############
+</p>
+ 	
 </div>

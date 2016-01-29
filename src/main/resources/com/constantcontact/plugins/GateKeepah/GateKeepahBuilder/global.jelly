@@ -16,6 +16,9 @@
     
     <f:entry title="Default Quality Gate Name" field="defaultQualityGateName">
       <f:textbox />
+      <f:validateButton
+   title="${%Test Connection}" progress="${%Testing...}"
+   method="testConnection" with="host,sonarUserName,sonarPassword" />
     </f:entry>
   </f:section>
 </j:jelly>

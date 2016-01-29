@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import javax.servlet.ServletException;
+
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.ProjectClient;
@@ -28,6 +31,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
+import hudson.util.FormValidation;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 
@@ -442,6 +446,74 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			defaultQualityGateName = formData.getString("defaultQualityGateName");
 			save();
 			return super.configure(req, formData);
+		}
+
+		/**
+		 * Create form validation
+		 */
+
+		public FormValidation doTestConnection(@QueryParameter("sonarHost") final String sonarHost,
+				@QueryParameter("sonarUserName") final String sonarUserName,
+				@QueryParameter("sonarPassword") final String sonarPassword) throws IOException, ServletException {
+			try {
+				doCheckSonarHost(sonarHost);
+				doCheckSonarUserName(sonarUserName);
+				doCheckSonarPassword(sonarPassword);
+				QualityGateClient client = new QualityGateClient(this.sonarHost, this.sonarUserName, this.sonarPassword);
+				client.retrieveQualityGateList();
+				return FormValidation.ok("Success");
+			} catch (Exception e) {
+				return FormValidation.error("Client error : " + e.getMessage());
+			}
+		}
+
+		public FormValidation doCheckSonarHost(@QueryParameter("sonarHost") String sonarHost)
+				throws IOException, ServletException {
+			try {
+				if (sonarHost.contains("https")) {
+					throw new FormException("Please use HTTP instead of HTTPS", "Sonar Host");
+				}
+
+				if (sonarHost.endsWith("/")) {
+					throw new FormException("Please remove trailing /", "Sonar Host");
+				}
+				
+				this.sonarHost = sonarHost;
+				return FormValidation.ok();
+			} catch (Exception e) {
+				return FormValidation.error("Global config error : " + e.getMessage());
+			}
+		}
+
+		public FormValidation doCheckSonarUserName(@QueryParameter("sonarUserName") final String sonarUserName)
+				throws IOException, ServletException {
+			try {
+
+				if (null == sonarUserName || sonarUserName.isEmpty()) {
+					throw new FormException("Sonar User Name must be set", "Sonar User Name");
+				}
+
+				this.sonarUserName = sonarUserName;
+
+				return FormValidation.ok();
+			} catch (Exception e) {
+				return FormValidation.error("Global config error : " + e.getMessage());
+			}
+		}
+
+		public FormValidation doCheckSonarPassword(@QueryParameter("sonarPassword") final String sonarPassword)
+				throws IOException, ServletException {
+			try {
+				if (null == sonarPassword || sonarPassword.isEmpty()) {
+					throw new FormException("Sonar Password must be set", "Sonar Password");
+				}
+
+				this.sonarPassword = sonarPassword;
+
+				return FormValidation.ok();
+			} catch (Exception e) {
+				return FormValidation.error("Global config error : " + e.getMessage());
+			}
 		}
 
 		public String getSonarHost() {
