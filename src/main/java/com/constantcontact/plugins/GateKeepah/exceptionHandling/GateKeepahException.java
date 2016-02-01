@@ -12,7 +12,7 @@ public class GateKeepahException extends InterruptedException {
 	
 	public GateKeepahException(String message) {	
 		super(message);
-		if(message.contains(PREFIX)){
+		if(null != message && message.contains(PREFIX)){
 			this.message = message;
 		}else {
 			this.message = PREFIX + message;			
