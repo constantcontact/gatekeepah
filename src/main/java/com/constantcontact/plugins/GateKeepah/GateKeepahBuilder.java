@@ -493,13 +493,10 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		if (null != conditionToUpdate) {
 			if (!(conditionToUpdate.getWarning() == Integer.parseInt(codeCoverageGoal)
 					&& conditionToUpdate.getError() == Integer.parseInt(codeCoverageBreakLevel))) {
-				listener.getLogger().println("I MADE IT HERE");
 				condition = updateQualityGateCondtion(codeCoverageBreakLevel, codeCoverageGoal, conditionToUpdate,
 						listener);
 			}
-			listener.getLogger().println("THIS HAPPENED");
 		} else {
-			listener.getLogger().println("I MADE IT OVER HERE");
 			condition = createQualityGateCondtion(codeCoverageBreakLevel, codeCoverageGoal, qualityGate, listener);
 		}
 		return condition;
