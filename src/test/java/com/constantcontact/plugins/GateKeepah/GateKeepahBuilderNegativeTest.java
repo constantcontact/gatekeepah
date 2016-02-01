@@ -182,7 +182,6 @@ public class GateKeepahBuilderNegativeTest {
 		if (null != projectName) {
 			ps.append("sonar.projectName=").append(projectName).append("\n");
 		}
-		System.out.println("GATE KEEPER BUILDER : " + ps.toString());
 		return new GateKeepahBuilder(null, ps.toString());
 	}
 

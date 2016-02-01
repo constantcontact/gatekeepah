@@ -81,8 +81,7 @@ public class GateKeepahBuilderPropertiesTest {
 			gateKeepahBuilder.readPropertiesFile(filePath, "testconfig.properties", "test4=\n");
 			Assert.fail("Should have thrown an exception");
 		} catch (InterruptedException ie) {
-			Assert.assertEquals("Property could not be set for test4= because it was missing its value",
-					ie.getLocalizedMessage());
+			Assert.assertEquals(true, ie.getLocalizedMessage().contains("Property could not be set for test4= because it was missing its value"));
 		}
 	}
 
@@ -97,8 +96,7 @@ public class GateKeepahBuilderPropertiesTest {
 			gateKeepahBuilder.readPropertiesFile(filePath, null, "test4=\n");
 			Assert.fail("Should have thrown en exception");
 		} catch (InterruptedException ie) {
-			Assert.assertEquals("Property could not be set for test4= because it was missing its value",
-					ie.getLocalizedMessage());
+			Assert.assertEquals(true, ie.getLocalizedMessage().contains("Property could not be set for test4= because it was missing its value"));
 		}
 
 	}
