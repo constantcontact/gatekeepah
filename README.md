@@ -44,7 +44,7 @@ This plugin does not require plugins to function.  However, you need to have a w
 ![alt tag](config-example.png)
 
 ### Example Console Output
-![alt tag](example-comments.png)
+![alt tag](console-example.png)
 
 ### Running Java Tests locally
 Since some of the tests require an instance of sonar to hit all code paths you need to supply the authentication critera and host when running the tests.  There is also a config.properties file that needs to have seeded data.  
