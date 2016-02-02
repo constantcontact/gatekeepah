@@ -1,13 +1,16 @@
 GateKeepah
 ======
 ## Summary
-A very simplistic plugin designed to run before sonar code analysis to create, update, and assign a quality gate for code coverage to a project.  Having the quality gate in place for your analysis will break your build if it does not meet the critera supplied by the plugin.
+A plugin with a targeted purpose designed to run before sonar code analysis to create, update, and assign a quality gate for code coverage to a project.  Having the quality gate in place for your analysis will break your build if it does not meet the criteria supplied by the plugin.
 
 ### Example Use Case
 Job is triggered from a pull request (see YAPah Jenkins Plugin), the project will be cloned and built with all the pull requests changes.  Gatekeeper creates a sonar project, a quality gate, and assigns the quality gate to that project then the Sonar Qube Analysis plugin will either succeed or fail the build based on the quality gate metrics.  
 
 ### Required Jenkins Plugins
 This plugin does not require plugins to function.  However, you need to have a working instance of Sonar running to be able to run the plugin. 
+
+### Required Jenkins Plugins
+SonarQube Plugin (v2.3)
 
 ### Jenkins Installation
 1. Build the plugin (mvn package)
@@ -47,7 +50,7 @@ This plugin does not require plugins to function.  However, you need to have a w
 ![alt tag](console-example.png)
 
 ### Running Java Tests locally
-Since some of the tests require an instance of sonar to hit all code paths you need to supply the authentication critera and host when running the tests.  There is also a config.properties file that needs to have seeded data.  
+Since some of the tests require an instance of sonar to hit all code paths you need to supply the authentication criteria and host when running the tests.  There is also a config.properties file that needs to have seeded data.  
 ```
 mvn clean package -Dusername=username -Dpassword=password -Dhost=http://sonar.host.com:9000
 ```
