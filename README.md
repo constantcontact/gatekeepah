@@ -10,7 +10,7 @@ Job is triggered from a pull request (see YAPah Jenkins Plugin), the project wil
 This plugin does not require plugins to function.  However, you need to have a working instance of Sonar running to be able to run the plugin. 
 
 ### Required Jenkins Plugins
-* Unordered sub-list. SonarQube Plugin (v2.3)
+* SonarQube Plugin (v2.3)
 
 ### Jenkins Installation
 1. Build the plugin (mvn package)
