@@ -603,7 +603,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		this.projectClient = projectClient;
 	}	
 	
-	private Properties mapToProperties(final Map<String, String> map) {
+	public Properties mapToProperties(final Map<String, String> map) {
 		Properties props = new Properties();
 		props.putAll(map);
 		return props;
