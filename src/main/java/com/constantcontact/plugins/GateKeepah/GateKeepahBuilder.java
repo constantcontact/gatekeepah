@@ -37,8 +37,8 @@ import net.sf.json.JSONObject;
 
 public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
-	private final String propertiesFileName;
-	private final String additionalProperties;
+	private String propertiesFileName;
+	private String additionalProperties;
 	private final String LOGGING_PREFIX = "GateKeepah:     ";
 
 	private QualityGateClient qualityGateClient;
@@ -166,15 +166,16 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			setQualityGateClient(new QualityGateClient(getDescriptor().getSonarHost(),
 					getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword()));
 			
-			
+			if(null == propertiesFileName || propertiesFileName.isEmpty()){
+				propertiesFileName = "gatekeepah.properties";
+			}
 			FilePath filePath = workspace.child(propertiesFileName);			
 			HashMap<String, String> map = new HashMap<String,String>();
 			
 			EnvVars envVars = new EnvVars();
 			envVars = build.getEnvironment(listener);
 			
-		    String nodeName = envVars.get("NODE_NAME");
-		    
+		    String nodeName = envVars.get("NODE_NAME");		    
 			if(nodeName.equalsIgnoreCase("master")){
 				map.putAll(Jenkins.getInstance().getRootPath().act(new GateKeepahPropertiesHandler(filePath.toString(), additionalProperties)));
 			}else{

@@ -86,7 +86,7 @@ public class GateKeepahPropertiesHandler implements FilePath.FileCallable<Map<St
 					}
 				}
 				try {
-					File file = new File(getPropertiesFilePath() + File.separator + "gatekeepah.properties");
+					File file = new File(getPropertiesFilePath());
 					FileOutputStream fileOut = new FileOutputStream(file);
 					props.store(fileOut, "GateKeepah Properties");
 					fileOut.close();
