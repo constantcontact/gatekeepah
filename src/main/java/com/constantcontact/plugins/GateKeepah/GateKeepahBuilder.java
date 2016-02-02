@@ -1,14 +1,10 @@
 package com.constantcontact.plugins.GateKeepah;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.servlet.ServletException;
@@ -25,6 +21,7 @@ import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.Qua
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.QualityGateCondition;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.QualityGateListCollection;
 
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -34,6 +31,7 @@ import hudson.model.TaskListener;
 import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
+import jenkins.model.Jenkins;
 import jenkins.tasks.SimpleBuildStep;
 import net.sf.json.JSONObject;
 
@@ -61,76 +59,6 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 	public String getAdditionalProperties() {
 		return additionalProperties;
-	}
-
-	public Properties readPropertiesFile(String filePath, String propertiesFileName, final String additionalProperties)
-			throws GateKeepahException {
-		Properties props;
-
-		try {
-			if (null == propertiesFileName) {
-				throw new Exception("No file name found, creating our own");
-			}
-			InputStream input = new FileInputStream(filePath + File.separator + propertiesFileName);
-			props = new Properties();
-			props.load(input);
-
-			if (null != additionalProperties && !additionalProperties.isEmpty()) {
-				for (String line : additionalProperties.split(System.getProperty("line.separator"))) {
-					String[] newProperty = line.split("=");
-					try {
-						props.setProperty(newProperty[0], newProperty[1]);
-					} catch (ArrayIndexOutOfBoundsException oobe) {
-						throw new GateKeepahException(
-								"Property could not be set for " + line + " because it was missing its value");
-					}
-				}
-				try {
-					File file = new File(filePath + File.separator + propertiesFileName);
-					FileOutputStream fileOut = new FileOutputStream(file);
-					props.store(fileOut, "GateKeepah Properties");
-					fileOut.close();
-				} catch (FileNotFoundException fnfe) {
-					throw new GateKeepahException(fnfe.getMessage());
-				} catch (IOException ioe) {
-					throw new GateKeepahException(ioe.getMessage());
-				}
-			}
-		} catch (Exception e) {
-			if (e instanceof GateKeepahException) {
-				throw new GateKeepahException(e.getMessage());
-			}
-
-			props = new Properties();
-			if (null != additionalProperties && !additionalProperties.isEmpty()) {
-				for (String line : additionalProperties.split(System.getProperty("line.separator"))) {
-					if (line.length() < 1) {
-						throw new GateKeepahException(
-								"A properties file must be in the right place or properties added to the text area");
-					}
-					String[] newProperty = line.split("=");
-
-					try {
-						props.setProperty(newProperty[0], newProperty[1]);
-					} catch (ArrayIndexOutOfBoundsException oobe) {
-						throw new GateKeepahException(
-								"Property could not be set for " + line + " because it was missing its value");
-					}
-				}
-				try {
-					File file = new File(filePath + File.separator + "gatekeepah.properties");
-					FileOutputStream fileOut = new FileOutputStream(file);
-					props.store(fileOut, "GateKeepah Properties");
-					fileOut.close();
-				} catch (FileNotFoundException fnfe) {
-					throw new GateKeepahException(fnfe.getMessage());
-				} catch (IOException ioe) {
-					throw new GateKeepahException(ioe.getMessage());
-				}
-			}
-
-		}
-		return props;
 	}
 
 	public List<Project> retrieveProjectsForKey(final String sonarResourceKey) throws Exception {
@@ -237,9 +165,22 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 					getDescriptor().getSonarPassword()));
 			setQualityGateClient(new QualityGateClient(getDescriptor().getSonarHost(),
 					getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword()));
-
-			Properties props = readPropertiesFile(workspace.absolutize().toString(), propertiesFileName,
-					additionalProperties);
+			
+			
+			FilePath filePath = workspace.child(propertiesFileName);			
+			HashMap<String, String> map = new HashMap<String,String>();
+			
+			EnvVars envVars = new EnvVars();
+			envVars = build.getEnvironment(listener);
+			
+		    String nodeName = envVars.get("NODE_NAME");
+		    
+			if(nodeName.equalsIgnoreCase("master")){
+				map.putAll(Jenkins.getInstance().getRootPath().act(new GateKeepahPropertiesHandler(filePath.toString(), additionalProperties)));
+			}else{
+				map.putAll(filePath.act(new GateKeepahPropertiesHandler(filePath.toString(), additionalProperties)));
+			}
+			Properties props = mapToProperties(map);
 
 			// Ensure all required properties are set
 			final String qualityGateName = props.getProperty("sonar.qualityGateName");
@@ -659,5 +600,11 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 	public void setProjectClient(ProjectClient projectClient) {
 		this.projectClient = projectClient;
+	}	
+	
+	private Properties mapToProperties(final Map<String, String> map) {
+		Properties props = new Properties();
+		props.putAll(map);
+		return props;
 	}
 }
