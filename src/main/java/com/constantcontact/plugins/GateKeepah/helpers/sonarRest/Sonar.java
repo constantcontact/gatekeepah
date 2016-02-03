@@ -3,6 +3,8 @@ package com.constantcontact.plugins.GateKeepah.helpers.sonarRest;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import com.constantcontact.plugins.Messages;
+
 public class Sonar {
 	private String host;
 	private String username;
@@ -10,25 +12,25 @@ public class Sonar {
 
 	public Sonar(final String host, final String username, final String password) throws Exception {
 		if (null == host || host.isEmpty()) {
-			throw new Exception("Host must be setup and can not be empty");
+			throw new Exception(Messages.sonarclient_host_required());
 		}
 
 		if (null == username || username.isEmpty()) {
-			throw new Exception("Username must be setup and can not be empty");
+			throw new Exception(Messages.sonarclient_username_required());
 		}
 
 		if (null == password || password.isEmpty()) {
-			throw new Exception("Password must setup and can not be empty");
+			throw new Exception(Messages.sonarclient_password_required());
 		}
 
 		try {
 			URI uri = new URI(host);
 			if (uri.getHost() == null || uri.getPort() == -1) {
-				throw new URISyntaxException(uri.toString(), "URI must have host and port parts");
+				throw new URISyntaxException(uri.toString(), Messages.sonarclient_bad_uri());
 			}
 
 		} catch (URISyntaxException e) {
-			throw new Exception("Host must be an address with a port seperated by a ':' e.g. http://localhost:9000");
+			throw new Exception(Messages.sonarclient_bad_uri2());
 		}
 
 		this.host = host;

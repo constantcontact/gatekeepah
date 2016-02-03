@@ -23,6 +23,8 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
+import com.constantcontact.plugins.Messages;
+
 public class HttpHelper {
 
 	private String host;
@@ -31,25 +33,25 @@ public class HttpHelper {
 
 	public HttpHelper(final String host, final String username, final String password) throws Exception {
 		if (null == host || host.isEmpty()) {
-			throw new Exception("Host must be setup and can not be empty");
+			throw new Exception(Messages.httphelper_null_host());
 		}
 
 		if (null == username || username.isEmpty()) {
-			throw new Exception("Username must be setup and can not be empty");
+			throw new Exception(Messages.httphelper_null_username());
 		}
 
 		if (null == password || password.isEmpty()) {
-			throw new Exception("Password must setup and can not be empty");
+			throw new Exception(Messages.httphelper_null_password());
 		}
 
 		try {
 			URI uri = new URI(host);
 			if (uri.getHost() == null || uri.getPort() == -1) {
-				throw new URISyntaxException(uri.toString(), "URI must have host and port parts");
+				throw new URISyntaxException(uri.toString(), Messages.httphelper_bad_uri());
 			}
 
 		} catch (URISyntaxException e) {
-			throw new Exception("Host must be an address with a port seperated by a ':' e.g. http://localhost:9000");
+			throw new Exception(Messages.httphelper_bad_uri2());
 		}
 
 		this.host = host;
@@ -75,7 +77,7 @@ public class HttpHelper {
 						String responseBody = entity != null ? EntityUtils.toString(entity) : null;
 
 						throw new ClientProtocolException(
-								"Unexpected response status: " + status + "\n" + responseBody);
+								Messages.httphelper_unexpected_response() + status + "\n" + responseBody);
 					}
 				}
 
@@ -124,7 +126,7 @@ public class HttpHelper {
 						String responseBody = entity != null ? EntityUtils.toString(entity) : null;
 
 						throw new ClientProtocolException(
-								"Unexpected response status: " + status + "\n" + responseBody);
+								Messages.httphelper_unexpected_response() + status + "\n" + responseBody);
 					}
 				}
 

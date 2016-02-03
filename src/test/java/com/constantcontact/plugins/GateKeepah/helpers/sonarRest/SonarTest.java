@@ -1,10 +1,10 @@
 package com.constantcontact.plugins.GateKeepah.helpers.sonarRest;
 
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constantcontact.plugins.Messages;
 import com.constantcontact.plugins.GateKeepah.TestDataHelper;
 
 public class SonarTest {
@@ -20,8 +20,7 @@ public class SonarTest {
 	@Test
 	public void sonarClientSetup() {
 		try {
-			new Sonar(testHelper.getHost(), testHelper.getUserName(),
-					testHelper.getPassword());
+			new Sonar(testHelper.getHost(), testHelper.getUserName(), testHelper.getPassword());
 		} catch (Exception e) {
 			Assert.fail("No Exception should have occurred");
 		}
@@ -33,7 +32,7 @@ public class SonarTest {
 			new Sonar(null, testHelper.getUserName(), testHelper.getPassword());
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().contains("Host must be setup and can not be empty"));
+			Assert.assertTrue(e.getMessage().contains(Messages.sonarclient_host_required()));
 		}
 	}
 
@@ -43,7 +42,7 @@ public class SonarTest {
 			new Sonar(testHelper.getHost(), null, testHelper.getPassword());
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().contains("Username must be setup and can not be empty"));
+			Assert.assertTrue(e.getMessage().contains(Messages.sonarclient_username_required()));
 		}
 	}
 
@@ -53,7 +52,7 @@ public class SonarTest {
 			new Sonar(testHelper.getHost(), testHelper.getUserName(), null);
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().contains("Password must setup and can not be empty"));
+			Assert.assertTrue(e.getMessage().contains(Messages.sonarclient_password_required()));
 		}
 	}
 
@@ -63,7 +62,7 @@ public class SonarTest {
 			new Sonar("", testHelper.getUserName(), null);
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().contains("Host must be setup and can not be empty"));
+			Assert.assertTrue(e.getMessage().contains(Messages.sonarclient_host_required()));
 		}
 	}
 
@@ -73,7 +72,7 @@ public class SonarTest {
 			new Sonar(testHelper.getHost(), "", null);
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().contains("Username must be setup and can not be empty"));
+			Assert.assertTrue(e.getMessage().contains(Messages.sonarclient_username_required()));
 		}
 	}
 
@@ -83,31 +82,27 @@ public class SonarTest {
 			new Sonar(testHelper.getHost(), testHelper.getUserName(), "");
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage().contains("Password must setup and can not be empty"));
+			Assert.assertTrue(e.getMessage().contains(Messages.sonarclient_password_required()));
 		}
 	}
 
 	@Test
 	public void sonarClientNoPort() {
 		try {
-			new Sonar("http://localhost", testHelper.getUserName(),
-					testHelper.getPassword());
+			new Sonar("http://localhost", testHelper.getUserName(), testHelper.getPassword());
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage()
-					.contains("Host must be an address with a port seperated by a ':' e.g. http://localhost:9000"));
+			Assert.assertTrue(e.getMessage().contains(Messages.sonarclient_bad_uri2()));
 		}
 	}
 
 	@Test
 	public void sonarClientNoHttp() {
 		try {
-			new Sonar("localhost:9000", testHelper.getUserName(),
-					testHelper.getPassword());
+			new Sonar("localhost:9000", testHelper.getUserName(), testHelper.getPassword());
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertTrue(e.getMessage()
-					.contains("Host must be an address with a port seperated by a ':' e.g. http://localhost:9000"));
+			Assert.assertTrue(e.getMessage().contains(Messages.sonarclient_bad_uri2()));
 		}
 	}
 

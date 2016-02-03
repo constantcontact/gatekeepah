@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.constantcontact.plugins.Messages;
 import com.constantcontact.plugins.GateKeepah.TestDataHelper;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.ProjectClient;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.projects.Project;
@@ -89,7 +90,7 @@ public class ProjectClientTest {
 			client.createProject(project);
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertEquals("Key is a required field and must be set", e.getMessage());
+			Assert.assertEquals(Messages.projectclient_key_required(), e.getMessage());
 		}
 	}
 
@@ -104,7 +105,7 @@ public class ProjectClientTest {
 			client.createProject(project);
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertEquals("Key is a required field and must be set", e.getMessage());
+			Assert.assertEquals(Messages.projectclient_key_required(), e.getMessage());
 		}
 	}
 
@@ -119,7 +120,7 @@ public class ProjectClientTest {
 			client.createProject(project);
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertEquals("Name is a required field and must be set", e.getMessage());
+			Assert.assertEquals(Messages.projectclient_name_required(), e.getMessage());
 		}
 	}
 
@@ -134,7 +135,7 @@ public class ProjectClientTest {
 			client.createProject(project);
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertEquals("Name is a required field and must be set", e.getMessage());
+			Assert.assertEquals(Messages.projectclient_name_required(), e.getMessage());
 		}
 
 	}
@@ -168,7 +169,7 @@ public class ProjectClientTest {
 			client.deleteProject(project.getK());
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertEquals("Key is a required field and must be set", e.getMessage());
+			Assert.assertEquals(Messages.projectclient_key_required(), e.getMessage());
 		}
 	}
 
@@ -184,7 +185,7 @@ public class ProjectClientTest {
 			client.deleteProject(project.getK());
 			Assert.fail("An Exception should have occurred");
 		} catch (Exception e) {
-			Assert.assertEquals("Key is a required field and must be set", e.getMessage());
+			Assert.assertEquals(Messages.projectclient_key_required(), e.getMessage());
 		}
 	}
 }

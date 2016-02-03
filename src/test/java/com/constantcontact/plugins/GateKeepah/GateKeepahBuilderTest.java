@@ -10,6 +10,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import com.constantcontact.plugins.Messages;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
@@ -97,58 +98,58 @@ public class GateKeepahBuilderTest {
 	@Test
 	public void testGateKeepahNullGateName() throws Exception {
 		runTest(buildGateKeepahProperties(null, testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
-				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"), "sonar.qualityGateName is empty or null");
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"), Messages.builder_qualitygatename_required());
 	}
 
 	@Test
 	public void testGateKeepahNullResourceKey() throws Exception {
 		runTest(buildGateKeepahProperties("autobots", null, testHelper.getCodeCoverageGoal(),
-				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"), "sonar.projectKey is empty or null");
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"), Messages.builder_projectkey_required());
 	}
 
 	@Test
 	public void testGateKeepahNullBreakLevel() throws Exception {
 		runTest(buildGateKeepahProperties("autobots", testHelper.getProjectId(), null,
-				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"), "sonar.codeCoverageBreakLevel is empty or null");
+				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"), Messages.builder_codecoveragebreaklevel_required());
 	}
 
 	@Test
 	public void testGateKeepahNullCoverageGoal() throws Exception {
 		runTest(buildGateKeepahProperties("autobots", testHelper.getProjectId(), testHelper.getCodeCoverageGoal(), null,
-				"gatekeepah"), "sonar.codeCoverageGoal is empty or null");
+				"gatekeepah"), Messages.builder_codecoveragegoal_required());
 	}
 
 	@Test
 	public void testGateKeepahNullAppName() throws Exception {
 		runTest(buildGateKeepahProperties("autobots", testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
-				testHelper.getCodeCoverageBreakLevel(), null), "sonar.projectName is empty or null");
+				testHelper.getCodeCoverageBreakLevel(), null), Messages.builder_projectname_required());
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahBadFilePath() throws Exception {
 		runTest(new GateKeepahBuilder("file.properties", null),
-				"Aborting the build, no properties were set to utilize quality gates");
+				Messages.builder_abort_no_properties());
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahNoData() throws Exception {
 		runTest(new GateKeepahBuilder(null, null),
-				"Aborting the build, no properties were set to utilize quality gates");
+				Messages.builder_abort_no_properties());
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahEmptyPropertiesFile() throws Exception {
-		runTest(new GateKeepahBuilder("", null), "Aborting the build, no properties were set to utilize quality gates");
+		runTest(new GateKeepahBuilder("", null), Messages.builder_abort_no_properties());
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahEmptyProps() throws Exception {
-		runTest(new GateKeepahBuilder(null, ""), "Aborting the build, no properties were set to utilize quality gates");
+		runTest(new GateKeepahBuilder(null, ""), Messages.builder_abort_no_properties());
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahAllEmpty() throws Exception {
-		runTest(new GateKeepahBuilder("", ""), "Aborting the build, no properties were set to utilize quality gates");
+		runTest(new GateKeepahBuilder("", ""), Messages.builder_abort_no_properties());
 	}
 
 	private void runTest(final GateKeepahBuilder gateKeepahBuilder, final String assertion) throws Exception {
@@ -188,7 +189,7 @@ public class GateKeepahBuilderTest {
 	}
 
 	private String constructEmptyPropValue(final String key) {
-		return "Property could not be set for " + key + " because it was missing its value";
+		return Messages.handler_property_not_set() + key + Messages.handler_property_missing_value();
 	}
 
 }

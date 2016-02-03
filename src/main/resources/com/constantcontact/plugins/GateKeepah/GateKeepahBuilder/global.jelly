@@ -1,24 +1,25 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <f:section title="GateKeepah">
-    <f:entry title="Sonar Host" field="sonarHost"
-      description="Sonar Host, e.g. http://localhost:9000, port must be specified">
+  <f:section title="${%GateKeepah}">
+    <f:entry title="${%Sonar Host}" field="sonarHost"
+      description="${%Sonar Host, e.g. http://localhost:9000, port must be specified}" help="/plugin/GateKeepah/help-sonarHost.html">
       <f:textbox />
     </f:entry>
     
-    <f:entry title="Sonar User Name" field="sonarUserName">
+    <f:entry title="${%Sonar User Name}" field="sonarUserName" help="/plugin/GateKeepah/help-sonarUserName.html">
       <f:textbox />
     </f:entry>
     
-    <f:entry title="Sonar Password" field="sonarPassword">
+    <f:entry title="${%Sonar Password}" field="sonarPassword" help="/plugin/GateKeepah/help-sonarPassword.html">
       <f:password />
     </f:entry>
     
-    <f:entry title="Default Quality Gate Name" field="defaultQualityGateName">
+    <f:entry title="${%Default Quality Gate Name}" field="defaultQualityGateName" help="/plugin/GateKeepah/help-defaultQualityGateName.html">
       <f:textbox />
+    </f:entry>
       <f:validateButton
    title="${%Test Connection}" progress="${%Testing...}"
    method="testConnection" with="host,sonarUserName,sonarPassword" />
-    </f:entry>
+    
   </f:section>
 </j:jelly>

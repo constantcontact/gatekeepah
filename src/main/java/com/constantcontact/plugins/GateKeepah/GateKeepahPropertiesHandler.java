@@ -12,6 +12,7 @@ import java.util.Properties;
 
 import org.jenkinsci.remoting.RoleChecker;
 
+import com.constantcontact.plugins.Messages;
 import com.constantcontact.plugins.GateKeepah.exceptionHandling.GateKeepahException;
 
 import hudson.FilePath;
@@ -36,7 +37,7 @@ public class GateKeepahPropertiesHandler implements FilePath.FileCallable<Map<St
 
 		try {
 			if (null == getPropertiesFilePath()) {
-				throw new Exception("No file name found, creating our own");
+				throw new Exception(Messages.handler_nofile_found_exception());
 			}
 			File propsFile = new File(getPropertiesFilePath());
 			InputStream input = new FileInputStream(propsFile);
@@ -50,13 +51,13 @@ public class GateKeepahPropertiesHandler implements FilePath.FileCallable<Map<St
 						props.setProperty(newProperty[0], newProperty[1]);
 					} catch (ArrayIndexOutOfBoundsException oobe) {
 						throw new GateKeepahException(
-								"Property could not be set for " + line + " because it was missing its value");
+								Messages.handler_property_not_set() + line + Messages.handler_property_missing_value());
 					}
 				}
 				try {
 					File file = new File(getPropertiesFilePath());
 					FileOutputStream fileOut = new FileOutputStream(file);
-					props.store(fileOut, "GateKeepah Properties");
+					props.store(fileOut, Messages.handler_file_comment());
 					fileOut.close();
 				} catch (FileNotFoundException fnfe) {
 					throw new GateKeepahException(fnfe.getMessage());
@@ -74,7 +75,7 @@ public class GateKeepahPropertiesHandler implements FilePath.FileCallable<Map<St
 				for (String line : getPropertiesContent().split(System.getProperty("line.separator"))) {
 					if (line.length() < 1) {
 						throw new GateKeepahException(
-								"A properties file must be in the right place or properties added to the text area");
+								Messages.handler_properties_file_wrong_place());
 					}
 					String[] newProperty = line.split("=");
 
@@ -82,13 +83,13 @@ public class GateKeepahPropertiesHandler implements FilePath.FileCallable<Map<St
 						props.setProperty(newProperty[0], newProperty[1]);
 					} catch (ArrayIndexOutOfBoundsException oobe) {
 						throw new GateKeepahException(
-								"Property could not be set for " + line + " because it was missing its value");
+								Messages.handler_property_not_set() + line + Messages.handler_property_missing_value());
 					}
 				}
 				try {
 					File file = new File(getPropertiesFilePath());
 					FileOutputStream fileOut = new FileOutputStream(file);
-					props.store(fileOut, "GateKeepah Properties");
+					props.store(fileOut, Messages.handler_file_comment());
 					fileOut.close();
 				} catch (FileNotFoundException fnfe) {
 					throw new GateKeepahException(fnfe.getMessage());

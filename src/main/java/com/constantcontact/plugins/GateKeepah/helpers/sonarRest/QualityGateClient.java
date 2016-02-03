@@ -10,6 +10,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.constantcontact.plugins.Messages;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.QualityGate;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.QualityGateCondition;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.qualityGates.QualityGateListCollection;
@@ -34,7 +35,7 @@ public class QualityGateClient extends Sonar {
 			throws Exception {
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 		if (qualityGateCondition.getId() == 0) {
-			throw new Exception("Quality Gate Condition Id can not be 0, it is a required field");
+			throw new Exception(Messages.qualitygateclient_condition_id_required());
 		}
 		formparams.add(new BasicNameValuePair("error", String.valueOf(qualityGateCondition.getError())));
 		formparams.add(new BasicNameValuePair("id", String.valueOf(qualityGateCondition.getId())));
@@ -81,7 +82,7 @@ public class QualityGateClient extends Sonar {
 	public QualityGate createQualityGate(final String name) throws Exception {
 		List<NameValuePair> formparams = new ArrayList<NameValuePair>();
 		if (null == name || name.isEmpty()) {
-			throw new Exception("Name is a required field and needs to be set");
+			throw new Exception(Messages.qualitygateclient_name_required());
 		}
 		formparams.add(new BasicNameValuePair("name", name));
 		HttpEntity payload = new UrlEncodedFormEntity(formparams, Consts.UTF_8);

@@ -10,6 +10,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import com.constantcontact.plugins.Messages;
 import com.gargoylesoftware.htmlunit.html.HtmlForm;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlPasswordInput;
@@ -73,8 +74,7 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		System.out.println(build.getDisplayName() + " completed");
 		String s = FileUtils.readFileToString(build.getLogFile());
 		System.out.println(s);
-		Assert.assertEquals(true,
-				s.contains("Aborting the build, sonar.projectKey must be set to associate default quality gate"));
+		Assert.assertEquals(true, s.contains(Messages.builder_abort_projectkey()));
 	}
 
 	@Test
@@ -89,7 +89,7 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		System.out.println(build.getDisplayName() + " completed");
 		String s = FileUtils.readFileToString(build.getLogFile());
 		System.out.println(s);
-		Assert.assertEquals(true, s.contains("Did not find the project and could not create one, please enter values for sonar.projectKey and sonar.projectName"));
+		Assert.assertEquals(true, s.contains(Messages.builder_retrieve_projects_exception()));
 	}
 
 	@Test
@@ -104,7 +104,7 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		System.out.println(build.getDisplayName() + " completed");
 		String s = FileUtils.readFileToString(build.getLogFile());
 		System.out.println(s);
-		Assert.assertEquals(true, s.contains("Did not find the project and could not create one, please enter values for sonar.projectKey and sonar.projectName"));
+		Assert.assertEquals(true, s.contains(Messages.builder_retrieve_projects_exception()));
 	}
 
 	@Test
@@ -119,7 +119,7 @@ public class GateKeepahBuilderDefaultGatewayTest {
 		System.out.println(build.getDisplayName() + " completed");
 		String s = FileUtils.readFileToString(build.getLogFile());
 		System.out.println(s);
-		Assert.assertEquals(true, s.contains("Did not find the project and could not create one, please enter values for sonar.projectKey and sonar.projectName"));
+		Assert.assertEquals(true, s.contains(Messages.builder_retrieve_projects_exception()));
 	}
 
 }

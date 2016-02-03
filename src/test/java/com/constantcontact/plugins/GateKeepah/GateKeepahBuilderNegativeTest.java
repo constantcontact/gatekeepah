@@ -10,6 +10,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 
+import com.constantcontact.plugins.Messages;
+
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.tasks.Shell;
@@ -20,9 +22,9 @@ public class GateKeepahBuilderNegativeTest {
 	public JenkinsRule jenkinsRule = new JenkinsRule();
 
 	public List<FreeStyleProject> projectsToDestroy = new ArrayList<FreeStyleProject>();
-	public String assertion1 = "Sonar host was not set in global configuration";
-	public String assertion2 = "Sonar Username was not set in global configuration";
-	public String assertion3 = "Sonar Password was not set in global configuration";
+	public String assertion1 = Messages.builder_sonar_host_required();
+	public String assertion2 = Messages.builder_sonar_username_required();
+	public String assertion3 = Messages.builder_sonar_password_required();
 
 	public TestDataHelper testHelper;
 
@@ -34,91 +36,79 @@ public class GateKeepahBuilderNegativeTest {
 	@Test
 	public void testAbilityToAddGateKeepah() throws Exception {
 		runTest(new GateKeepahBuilder("",
-				"sonar.qualityGateName=" + testHelper.getGateName() + "\nsonar.projectKey="
-						+ testHelper.getProjectId() + "\nsonar.codeCoverageBreakLevel="
-						+ testHelper.getCodeCoverageBreakLevel() + "\nsonar.codeCoverageGoal="
-						+ testHelper.getCodeCoverageGoal() + "\nsonar.projectName="
+				"sonar.qualityGateName=" + testHelper.getGateName() + "\nsonar.projectKey=" + testHelper.getProjectId()
+						+ "\nsonar.codeCoverageBreakLevel=" + testHelper.getCodeCoverageBreakLevel()
+						+ "\nsonar.codeCoverageGoal=" + testHelper.getCodeCoverageGoal() + "\nsonar.projectName="
 						+ testHelper.getProjectName()));
 	}
 
 	@Test
 	public void testAbilityToAddGateKeepahNullPropertyName() throws Exception {
 		runTest(new GateKeepahBuilder(null,
-				"sonar.qualityGateName=" + testHelper.getGateName() + "\nsonar.projectKey="
-						+ testHelper.getGateName() + "\nsonar.codeCoverageBreakLevel="
-						+ testHelper.getCodeCoverageBreakLevel() + "\nsonar.codeCoverageGoal="
-						+ testHelper.getCodeCoverageGoal() + "\nsonar.projectName="
+				"sonar.qualityGateName=" + testHelper.getGateName() + "\nsonar.projectKey=" + testHelper.getGateName()
+						+ "\nsonar.codeCoverageBreakLevel=" + testHelper.getCodeCoverageBreakLevel()
+						+ "\nsonar.codeCoverageGoal=" + testHelper.getCodeCoverageGoal() + "\nsonar.projectName="
 						+ testHelper.getProjectName()));
 	}
 
 	@Test
 	public void testGateKeepahEmptyTeam() throws Exception {
-		runTest(buildGateKeepahProperties("", testHelper.getProjectId(),
-				testHelper.getCodeCoverageGoal(),
+		runTest(buildGateKeepahProperties("", testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
 				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahEmptyResourceKey() throws Exception {
-		runTest(buildGateKeepahProperties(testHelper.getGateName(), "",
-				testHelper.getCodeCoverageGoal(),
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), "", testHelper.getCodeCoverageGoal(),
 				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahEmptyBreakLevel() throws Exception {
-		runTest(buildGateKeepahProperties(testHelper.getGateName(),
-				testHelper.getProjectId(), "",
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), testHelper.getProjectId(), "",
 				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahEmptyCoverageGoal() throws Exception {
-		runTest(buildGateKeepahProperties(testHelper.getGateName(),
-				testHelper.getProjectId(), testHelper.getCodeCoverageGoal(), "",
-				"gatekeepah"));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), testHelper.getProjectId(),
+				testHelper.getCodeCoverageGoal(), "", "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahEmptyAppName() throws Exception {
-		runTest(buildGateKeepahProperties(testHelper.getGateName(),
-				testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
-				testHelper.getCodeCoverageBreakLevel(), ""));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), testHelper.getProjectId(),
+				testHelper.getCodeCoverageGoal(), testHelper.getCodeCoverageBreakLevel(), ""));
 	}
 
 	@Test
 	public void testGateKeepahNullTeam() throws Exception {
-		runTest(buildGateKeepahProperties(null, testHelper.getProjectId(),
-				testHelper.getCodeCoverageGoal(),
+		runTest(buildGateKeepahProperties(null, testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
 				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahNullResourceKey() throws Exception {
-		runTest(buildGateKeepahProperties(testHelper.getGateName(), null,
-				testHelper.getCodeCoverageGoal(),
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), null, testHelper.getCodeCoverageGoal(),
 				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahNullBreakLevel() throws Exception {
-		runTest(buildGateKeepahProperties(testHelper.getGateName(),
-				testHelper.getProjectId(), null,
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), testHelper.getProjectId(), null,
 				testHelper.getCodeCoverageBreakLevel(), "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahNullCoverageGoal() throws Exception {
-		runTest(buildGateKeepahProperties(testHelper.getGateName(),
-				testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
-				null, "gatekeepah"));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), testHelper.getProjectId(),
+				testHelper.getCodeCoverageGoal(), null, "gatekeepah"));
 	}
 
 	@Test
 	public void testGateKeepahNullAppName() throws Exception {
-		runTest(buildGateKeepahProperties(testHelper.getGateName(),
-				testHelper.getProjectId(), testHelper.getCodeCoverageGoal(),
-				testHelper.getCodeCoverageBreakLevel(), null));
+		runTest(buildGateKeepahProperties(testHelper.getGateName(), testHelper.getProjectId(),
+				testHelper.getCodeCoverageGoal(), testHelper.getCodeCoverageBreakLevel(), null));
 	}
 
 	@Test

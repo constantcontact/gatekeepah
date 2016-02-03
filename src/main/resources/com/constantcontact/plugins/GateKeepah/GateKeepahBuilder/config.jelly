@@ -1,10 +1,10 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-  <f:entry title="Properties File Name" field="propertiesFileName">
+  <f:entry title="${%Properties File Name}" field="propertiesFileName" help="/plugin/GateKeepah/help-propertiesFileName.html">
     <f:textbox />
   </f:entry>
   
-  <f:entry title="Additional Properties" field="additionalProperties">
+  <f:entry title="${%Additional Properties}" field="additionalProperties" help="/plugin/GateKeepah/help-additionalProperties.html">
     <f:textarea />
   </f:entry>
 </j:jelly>

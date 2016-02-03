@@ -13,6 +13,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 
+import com.constantcontact.plugins.Messages;
 import com.constantcontact.plugins.GateKeepah.exceptionHandling.GateKeepahException;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.ProjectClient;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.QualityGateClient;
@@ -39,7 +40,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 	private String propertiesFileName;
 	private String additionalProperties;
-	private final String LOGGING_PREFIX = "GateKeepah:     ";
+	private final String LOGGING_PREFIX = Messages.builder_logging_prefix();
 
 	private QualityGateClient qualityGateClient;
 	private ProjectClient projectClient;
@@ -156,7 +157,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			listener.getLogger().println(
 					LOGGING_PREFIX + "-----------------------------------------------------------------------------");
 
-			listener.getLogger().println(LOGGING_PREFIX + "Starting GateKeepah");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_start());
 			listener.getLogger().println(
 					LOGGING_PREFIX + "-----------------------------------------------------------------------------");
 
@@ -165,20 +166,21 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 					getDescriptor().getSonarPassword()));
 			setQualityGateClient(new QualityGateClient(getDescriptor().getSonarHost(),
 					getDescriptor().getSonarUserName(), getDescriptor().getSonarPassword()));
-			
-			if(null == propertiesFileName || propertiesFileName.isEmpty()){
+
+			if (null == propertiesFileName || propertiesFileName.isEmpty()) {
 				propertiesFileName = "gatekeepah.properties";
 			}
-			FilePath filePath = workspace.child(propertiesFileName);			
-			HashMap<String, String> map = new HashMap<String,String>();
-			
+			FilePath filePath = workspace.child(propertiesFileName);
+			HashMap<String, String> map = new HashMap<String, String>();
+
 			EnvVars envVars = new EnvVars();
 			envVars = build.getEnvironment(listener);
-			
-		    String nodeName = envVars.get("NODE_NAME");		    
-			if(nodeName.equalsIgnoreCase("master")){
-				map.putAll(Jenkins.getInstance().getRootPath().act(new GateKeepahPropertiesHandler(filePath.toString(), additionalProperties)));
-			}else{
+
+			String nodeName = envVars.get("NODE_NAME");
+			if (nodeName.equalsIgnoreCase("master")) {
+				map.putAll(Jenkins.getInstance().getRootPath()
+						.act(new GateKeepahPropertiesHandler(filePath.toString(), additionalProperties)));
+			} else {
 				map.putAll(filePath.act(new GateKeepahPropertiesHandler(filePath.toString(), additionalProperties)));
 			}
 			Properties props = mapToProperties(map);
@@ -197,15 +199,13 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			} else if ((null == getDescriptor().getDefaultQualityGateName()
 					|| getDescriptor().getDefaultQualityGateName().isEmpty())
 					&& (null == qualityGateName || qualityGateName.isEmpty())) {
-				throw new GateKeepahException(
-						"No Sonar Quality Gate was defined, please set a defauly quality gate in global configuration or supply sonar.qualityGateName in your properties file");
+				throw new GateKeepahException(Messages.builder_qualitygate_notdefined());
 			} else {
 				boolean usedDefaultQualityGate = setupDefaultQualityGate(sonarProjectKey, sonarProjectName,
 						getDescriptor().getDefaultQualityGateName(), codeCoverageGoal, codeCoverageBreakLevel,
 						listener);
 				if (!usedDefaultQualityGate && (null == qualityGateName || qualityGateName.isEmpty())) {
-					throw new GateKeepahException(
-							"No Sonar Quality Gate was defined, please set a defauly quality gate in global configuration or supply sonar.qualityGateName in your properties file");
+					throw new GateKeepahException(Messages.builder_qualitygate_notdefined());
 				}
 			}
 
@@ -215,15 +215,15 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			listener.getLogger().println(
 					LOGGING_PREFIX + "-----------------------------------------------------------------------------");
 
-			listener.getLogger().println(LOGGING_PREFIX + "Status: SUCCESS ");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_status_success());
 			listener.getLogger().println(
 					LOGGING_PREFIX + "-----------------------------------------------------------------------------");
 		} catch (Exception e) {
 			listener.getLogger().println(
 					LOGGING_PREFIX + "-----------------------------------------------------------------------------");
 
-			listener.getLogger().println(LOGGING_PREFIX + "Status: FAILED");
-			listener.getLogger().println(LOGGING_PREFIX + "Exception: " + e.getMessage());
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_status_failed());
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_status_exception() + e.getMessage());
 			listener.getLogger().println(
 					LOGGING_PREFIX + "-----------------------------------------------------------------------------");
 			listener.getLogger().println(e.getMessage());
@@ -282,7 +282,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 				QualityGateClient client = new QualityGateClient(this.sonarHost, this.sonarUserName,
 						this.sonarPassword);
 				client.retrieveQualityGateList();
-				return FormValidation.ok("Success");
+				return FormValidation.ok(Messages.builder_descriptor_formvalidation_success());
 			} catch (Exception e) {
 				return FormValidation.error("Client error : " + e.getMessage());
 			}
@@ -291,18 +291,24 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		public FormValidation doCheckSonarHost(@QueryParameter("sonarHost") String sonarHost)
 				throws IOException, ServletException {
 			try {
+				if (null == sonarHost || sonarHost.isEmpty()) {
+					throw new FormException(Messages.builder_descriptor_formvalidation_sonarhost_requried(),
+							Messages.builder_descriptor_formvalidation_sonarhost());
+				}
 				if (sonarHost.contains("https")) {
-					throw new FormException("Please use HTTP instead of HTTPS", "Sonar Host");
+					throw new FormException(Messages.builder_descriptor_formvalidation_http(),
+							Messages.builder_descriptor_formvalidation_sonarhost());
 				}
 
 				if (sonarHost.endsWith("/")) {
-					throw new FormException("Please remove trailing /", "Sonar Host");
+					throw new FormException(Messages.builder_descriptor_formvalidation_backslash(),
+							Messages.builder_descriptor_formvalidation_sonarhost());
 				}
 
 				this.sonarHost = sonarHost;
-				return FormValidation.ok();
+				return FormValidation.ok(Messages.builder_descriptor_formvalidation_success());
 			} catch (Exception e) {
-				return FormValidation.error("Global config error : " + e.getMessage());
+				return FormValidation.error(Messages.builder_sonar_globalconfig_exception() + e.getMessage());
 			}
 		}
 
@@ -311,14 +317,15 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			try {
 
 				if (null == sonarUserName || sonarUserName.isEmpty()) {
-					throw new FormException("Sonar User Name must be set", "Sonar User Name");
+					throw new FormException(Messages.builder_descriptor_formvalidation_username_required(),
+							Messages.builder_descriptor_formvalidation_username());
 				}
 
 				this.sonarUserName = sonarUserName;
 
-				return FormValidation.ok();
+				return FormValidation.ok(Messages.builder_descriptor_formvalidation_success());
 			} catch (Exception e) {
-				return FormValidation.error("Global config error : " + e.getMessage());
+				return FormValidation.error(Messages.builder_sonar_globalconfig_exception() + e.getMessage());
 			}
 		}
 
@@ -326,14 +333,15 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 				throws IOException, ServletException {
 			try {
 				if (null == sonarPassword || sonarPassword.isEmpty()) {
-					throw new FormException("Sonar Password must be set", "Sonar Password");
+					throw new FormException(Messages.builder_descriptor_formvalidation_password_required(),
+							Messages.builder_descriptor_formvalidation_password());
 				}
 
 				this.sonarPassword = sonarPassword;
 
-				return FormValidation.ok();
+				return FormValidation.ok(Messages.builder_descriptor_formvalidation_success());
 			} catch (Exception e) {
-				return FormValidation.error("Global config error : " + e.getMessage());
+				return FormValidation.error(Messages.builder_sonar_globalconfig_exception() + e.getMessage());
 			}
 		}
 
@@ -377,32 +385,32 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 		boolean throwException = false;
 		if (null == qualityGateName || qualityGateName.isEmpty()) {
-			listener.getLogger().println(LOGGING_PREFIX + "sonar.qualityGateName is empty or null");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_qualitygatename_required());
 			throwException = true;
 		}
 
 		if (null == sonarProjectName || sonarProjectName.isEmpty()) {
-			listener.getLogger().println(LOGGING_PREFIX + "sonar.projectName is empty or null");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_projectname_required());
 			throwException = true;
 		}
 
 		if (null == codeCoverageGoal || codeCoverageGoal.isEmpty()) {
-			listener.getLogger().println(LOGGING_PREFIX + "sonar.codeCoverageGoal is empty or null");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_codecoveragegoal_required());
 			throwException = true;
 		}
 
 		if (null == codeCoverageBreakLevel || codeCoverageBreakLevel.isEmpty()) {
-			listener.getLogger().println(LOGGING_PREFIX + "sonar.codeCoverageBreakLevel is empty or null");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_codecoveragebreaklevel_required());
 			throwException = true;
 		}
 
 		if (null == sonarProjectKey || sonarProjectKey.isEmpty()) {
-			listener.getLogger().println(LOGGING_PREFIX + "sonar.projectKey is empty or null");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_projectkey_required());
 			throwException = true;
 		}
 
 		if (throwException) {
-			throw new GateKeepahException("Aborting the build, no properties were set to utilize quality gates");
+			throw new GateKeepahException(Messages.builder_abort_no_properties());
 		}
 	}
 
@@ -410,21 +418,21 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 		boolean failFast = false;
 		if (null == getDescriptor().getSonarHost() || getDescriptor().getSonarHost().isEmpty()) {
 			failFast = true;
-			listener.getLogger().println(LOGGING_PREFIX + "Sonar host was not set in global configuration");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_sonar_host_required());
 		}
 
 		if (null == getDescriptor().getSonarUserName() || getDescriptor().getSonarUserName().isEmpty()) {
 			failFast = true;
-			listener.getLogger().println(LOGGING_PREFIX + "Sonar Username was not set in global configuration");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_sonar_username_required());
 		}
 
 		if (null == getDescriptor().getSonarPassword() || getDescriptor().getSonarPassword().isEmpty()) {
 			failFast = true;
-			listener.getLogger().println(LOGGING_PREFIX + "Sonar Password was not set in global configuration");
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_sonar_password_required());
 		}
 
 		if (failFast) {
-			throw new GateKeepahException("Global Sonar Configuration was not set correctly");
+			throw new GateKeepahException(Messages.builder_sonar_globalconfig_exception());
 		}
 	}
 
@@ -432,23 +440,23 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			final TaskListener listener) throws Exception {
 		List<Project> projects = null;
 		try {
-			listener.getLogger().println(LOGGING_PREFIX + "Retrieving projects for key " + sonarProjectKey);
+			listener.getLogger().println(LOGGING_PREFIX + Messages.builder_retrieve_projects_key() + sonarProjectKey);
 			projects = retrieveProjectsForKey(sonarProjectKey);
 		} catch (Exception e) {
 			projects = new ArrayList<Project>();
 		}
 		if (projects.size() > 1) {
-			throw new GateKeepahException("Please be mores specific when defining sonar.projectKey");
+			throw new GateKeepahException(Messages.builder_retrieve_projects_specific());
 		}
 
 		if (projects.size() == 0) {
 			if ((null != sonarProjectName && !sonarProjectName.isEmpty())
 					&& (null != sonarProjectKey && !sonarProjectKey.isEmpty())) {
-				listener.getLogger().println(LOGGING_PREFIX + "Creating a new project " + sonarProjectName);
+				listener.getLogger()
+						.println(LOGGING_PREFIX + Messages.builder_retrieve_projects_create() + sonarProjectName);
 				projects.add(createProject(sonarProjectName, sonarProjectKey));
 			} else {
-				throw new GateKeepahException(
-						"Did not find the project and could not create one, please enter values for sonar.projectKey and sonar.projectName");
+				throw new GateKeepahException(Messages.builder_retrieve_projects_exception());
 			}
 		}
 
@@ -458,21 +466,21 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 	private QualityGateCondition createQualityGateCondtion(final String codeCoverageBreakLevel,
 			final String codeCoverageGoal, final QualityGate qualityGate, final TaskListener listener)
 					throws Exception {
-		listener.getLogger().println(LOGGING_PREFIX + "Creating Quality Gate Condition");
+		listener.getLogger().println(LOGGING_PREFIX + Messages.builder_create_quality_gate());
 		return createQualityGateCondition(codeCoverageBreakLevel, codeCoverageGoal, qualityGate);
 	}
 
 	private QualityGateCondition updateQualityGateCondtion(final String codeCoverageBreakLevel,
 			final String codeCoverageGoal, final QualityGateCondition conditionToUpdate, final TaskListener listener)
 					throws Exception {
-		listener.getLogger().println(LOGGING_PREFIX + "Updating Quality Gate Condition");
+		listener.getLogger().println(LOGGING_PREFIX + Messages.builder_update_qualitygatecondition());
 		return updateQualityCondition(conditionToUpdate, codeCoverageBreakLevel, codeCoverageGoal);
 	}
 
 	private void associateProjectToQualityGate(final Project project, final QualityGate qualityGate,
 			final TaskListener listener) throws NumberFormatException, Exception {
-		listener.getLogger().println(
-				LOGGING_PREFIX + "Associating project " + project.getNm() + " to gate " + qualityGate.getName());
+		listener.getLogger().println(LOGGING_PREFIX + Messages.builder_associate_project() + project.getNm()
+				+ Messages.builder_associate_project_to_gate() + qualityGate.getName());
 		getQualityGateClient().associateQualityGate(qualityGate.getId(), Integer.parseInt(project.getId()));
 	}
 
@@ -494,20 +502,20 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 	private void setupQualityGate(final QualityGate qualityGateToUse, final String codeCoverageGoal,
 			final String codeCoverageBreakLevel, final Project project, final TaskListener listener) throws Exception {
-		listener.getLogger().println(LOGGING_PREFIX + "Retrieving Quality Gate Details for Quality Gate Name: "
-				+ qualityGateToUse.getName());
+		listener.getLogger()
+				.println(LOGGING_PREFIX + Messages.builder_retrieve_qualitygate_details() + qualityGateToUse.getName());
 		QualityGate qualityGate = getQualityGateClient().retrieveQualityGateDetails(qualityGateToUse.getId());
 		if (!qualityGate.getName().equalsIgnoreCase(getDescriptor().getDefaultQualityGateName())) {
-			listener.getLogger().println(LOGGING_PREFIX
-					+ "Retrieving Quality Gate Condition Details for Quality Gate Name: " + qualityGate.getName());
+			listener.getLogger().println(LOGGING_PREFIX + Messages._builder_retrieve_qualitygate_condition_details()
+					+ qualityGate.getName());
 			QualityGateCondition conditionToUpdate = retrieveConditionDetails(qualityGate);
 			if (null != conditionToUpdate) {
+				listener.getLogger().println(LOGGING_PREFIX + Messages.builder_update_qualitygate_condition_details_id()
+						+ conditionToUpdate.getId());
 				listener.getLogger()
-						.println(LOGGING_PREFIX
-								+ "Updating Quality Gate Condition Details for Quality Gate Condition ID: "
-								+ conditionToUpdate.getId());
-				listener.getLogger().println(LOGGING_PREFIX + "CODE COVERAGE GOAL = " + codeCoverageBreakLevel);
-				listener.getLogger().println(LOGGING_PREFIX + "CODE COVERAGE BREAK LEVEL = " + codeCoverageGoal);
+						.println(LOGGING_PREFIX + Messages.builder_code_coverage_goal() + codeCoverageBreakLevel);
+				listener.getLogger()
+						.println(LOGGING_PREFIX + Messages.builder_code_coverage_breaklevel() + codeCoverageGoal);
 			}
 			updateOrCreateCondition(conditionToUpdate, codeCoverageGoal, codeCoverageBreakLevel, qualityGate, listener);
 		}
@@ -516,14 +524,14 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 	private void createAndSetupQualityGate(final String qualityGateName, final String codeCoverageGoal,
 			final String codeCoverageBreakLevel, final Project project, final TaskListener listener) throws Exception {
-		listener.getLogger().println(LOGGING_PREFIX + "Creating Quality Gate : " + qualityGateName);
+		listener.getLogger().println(LOGGING_PREFIX + Messages.builder_create_quality_gate() + qualityGateName);
 		QualityGate qualityGateToUse = qualityGateClient.createQualityGate(qualityGateName);
 		setupQualityGate(qualityGateToUse, codeCoverageGoal, codeCoverageBreakLevel, project, listener);
 	}
 
 	private QualityGate findQualityGateToUse(final String qualityGateName, final TaskListener listener)
 			throws Exception {
-		listener.getLogger().println(LOGGING_PREFIX + "Looking for matching quality gate to identify with project");
+		listener.getLogger().println(LOGGING_PREFIX + Messages.builder_matching_quality_gate());
 		return findQualityGate(qualityGateName);
 	}
 
@@ -531,8 +539,7 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 			final String qualityGateName, final String codeCoverageGoal, final String codeCoverageBreakLevel,
 			final TaskListener listener) throws Exception {
 		if (null == sonarProjectKey || sonarProjectKey.isEmpty()) {
-			throw new GateKeepahException(
-					"Aborting the build, sonar.projectKey must be set to associate default quality gate");
+			throw new GateKeepahException(Messages.builder_abort_projectkey());
 		}
 		try {
 			Project project = retrieveOrCreateProject(sonarProjectName, sonarProjectKey, listener);
@@ -542,8 +549,8 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 				setupQualityGate(qualityGateToUse, codeCoverageGoal, codeCoverageBreakLevel, project, listener);
 				return true;
 			} else {
-				listener.getLogger()
-						.println(LOGGING_PREFIX + "Default Quality Gate " + qualityGateName + " was not found");
+				listener.getLogger().println(LOGGING_PREFIX + Messages.builder_default_qualitygate() + qualityGateName
+						+ Messages.builder_was_not_found());
 				return false;
 			}
 
@@ -562,11 +569,11 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 				QualityGate qualityGateToUse = findQualityGateToUse(qualityGateName, listener);
 
 				if (null == codeCoverageBreakLevel || codeCoverageBreakLevel.isEmpty()) {
-					throw new GateKeepahException("sonar.codeCoverageBreakLevel Must be set");
+					throw new GateKeepahException(Messages.builder_quality_gate_codecoveragebreaklevel_required());
 				}
 
 				if (null == codeCoverageGoal || codeCoverageGoal.isEmpty()) {
-					throw new GateKeepahException("sonar.codeCoverageGoal Must be set");
+					throw new GateKeepahException(Messages.builder_quality_gate_codecoveragegoal_required());
 				}
 
 				if (null != qualityGateToUse) {
@@ -577,9 +584,9 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 				}
 
 			} else if (null == sonarProjectName || sonarProjectName.isEmpty()) {
-				throw new GateKeepahException("sonar.projectName is a required field");
+				throw new GateKeepahException(Messages.builder_quality_gate_projectname_required());
 			} else if (null == sonarProjectKey || sonarProjectKey.isEmpty()) {
-				throw new GateKeepahException("sonar.projectKey is a required field");
+				throw new GateKeepahException(Messages.builder_quality_gate_projectkey_required());
 			}
 
 		} catch (Exception e) {
@@ -601,9 +608,9 @@ public class GateKeepahBuilder extends Builder implements SimpleBuildStep {
 
 	public void setProjectClient(ProjectClient projectClient) {
 		this.projectClient = projectClient;
-	}	
-	
-	public Properties mapToProperties(final Map<String, String> map) {
+	}
+
+	private Properties mapToProperties(final Map<String, String> map) {
 		Properties props = new Properties();
 		props.putAll(map);
 		return props;

@@ -10,6 +10,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.message.BasicNameValuePair;
 import org.codehaus.jackson.map.ObjectMapper;
 
+import com.constantcontact.plugins.Messages;
 import com.constantcontact.plugins.GateKeepah.helpers.sonarRest.projects.Project;
 
 public class ProjectClient extends Sonar {
@@ -42,13 +43,13 @@ public class ProjectClient extends Sonar {
 		if (null != project.getNm() && !project.getNm().isEmpty()) {
 			formparams.add(new BasicNameValuePair("name", String.valueOf(project.getNm())));
 		} else {
-			throw new Exception("Name is a required field and must be set");
+			throw new Exception(Messages.projectclient_name_required());
 		}
 
 		if (null != project.getK() && !project.getK().isEmpty()) {
 			formparams.add(new BasicNameValuePair("key", String.valueOf(project.getK())));
 		} else {
-			throw new Exception("Key is a required field and must be set");
+			throw new Exception(Messages.projectclient_key_required());
 		}
 		
 		HttpEntity payload = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
@@ -63,7 +64,7 @@ public class ProjectClient extends Sonar {
 		if (null != key && !key.isEmpty()) {
 			formparams.add(new BasicNameValuePair("id", key));
 		} else {
-			throw new Exception("Key is a required field and must be set");
+			throw new Exception(Messages.projectclient_key_required());
 		}
 		HttpEntity payload = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
 		getHttpHelper().doPost(this.getHost() + "/api/projects/destroy", payload);
